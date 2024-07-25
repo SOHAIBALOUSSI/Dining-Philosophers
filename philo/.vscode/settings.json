@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "philo.h": "c",
+        "stdbool.h": "c"
+    }
+}
