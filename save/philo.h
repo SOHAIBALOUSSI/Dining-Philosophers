@@ -7,14 +7,12 @@
 # include <unistd.h>
 # include <pthread.h>
 # include <stdbool.h>
-# include <sys/time.h>
+#include <sys/time.h>
 
 
-# ifndef MAX_PHILOS
-# define MAX_PHILOS 300
-# endif
+#define MAX_PHILOS 200
+#define MIN_TIME 60
 
-#define MIN_TIME 42
 # define USAGE "Usage:\n./philo [nb_of_philos] [time_to_die] [time_to_eat] [time_to_sleep] *[meals]\n"
 
 typedef struct  s_data
@@ -34,7 +32,7 @@ typedef struct  s_philo
 	long long			last_meal;
 	bool				is_dead;
 	pthread_t			thread;
-	pthread_mutex_t		last_meal_mutex;
+	pthread_mutex_t		last_meal_mutex; // we will use this mutex to protect the last_meal variable maybe :)
 	pthread_mutex_t		meals_mutex;
 	pthread_mutex_t		*left_fork;
 	pthread_mutex_t		*right_fork;
@@ -45,8 +43,8 @@ typedef struct s_table
 {
 	t_data			*data;
 	pthread_t		monitor;
-	t_philo			philos[300];
-	pthread_mutex_t	forks[300];
+	t_philo			philos[MAX_PHILOS];
+	pthread_mutex_t	forks[MAX_PHILOS];
 	pthread_mutex_t	log_mutex;
 	pthread_mutex_t table_mutex;
 	pthread_mutex_t dead_mutex;
@@ -67,7 +65,7 @@ void	*monitor_routine(void *data);
 void		error(char *msg);
 long long	getcurrtime(void);
 void		sleep_ms(long long ms);
-bool    	all_philos_ate_enough(t_table *table);
+bool		all_philos_ate_enough(void);
 void		print_status(t_philo *philo, char *status);
 
 /* Api*/

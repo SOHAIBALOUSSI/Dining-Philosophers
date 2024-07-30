@@ -19,8 +19,6 @@ static void	destroy_table(void)
 			error("Error: pthread_mutex_destroy failed\n");
 		i++;
 	}
-	if (pthread_mutex_destroy(&table->dead_mutex))
-		error("Error: pthread_mutex_destroy failed\n");
 	if (pthread_mutex_destroy(&table->log_mutex))
 		error("Error: pthread_mutex_destroy failed\n");
 }
@@ -43,11 +41,11 @@ static void	start_simulation(void)
 }
 static void	join_threads(void)
 {
-	int 	i;
 	t_table *table;
+	int 	i;
 
-	i = 0;
 	table = get_table();
+	i = 0;
 	while (i < table->data->nb_of_philos)
 	{
 		if (pthread_join(table->philos[i].thread, NULL))
@@ -56,6 +54,7 @@ static void	join_threads(void)
 	}
 	if (pthread_join(table->monitor, NULL))
 		error("Error: pthread_join failed\n");
+	
 }
 
 int	main(int ac, char **av)
