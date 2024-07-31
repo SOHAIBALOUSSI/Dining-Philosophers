@@ -25,6 +25,8 @@ void sleep_ms(long long ms)
 	long long start;
 
 	start = getcurrtime();
+	if (ms - 10 > 0)
+		usleep(ms - 10);
 	while (getcurrtime() - start < ms)
 		usleep(50);
 }
@@ -50,10 +52,12 @@ void print_status(t_philo *philo, char *status)
 	bool	is_dead;
 
 	table = get_table();
-	is_dead = is_someone_dead(table);
 	pthread_mutex_lock(&table->log_mutex);
-	if (!is_dead)
-		printf("%lld %d %s\n", getcurrtime() - table->start_time, philo->id, status);
+	if (!table->dead || (table->data->meals != -1
+		&& get_meals_eaten(philo) == table->data->meals))
+	{
+		printf("%lld  %d %s\n", getcurrtime() - table->start_time, philo->id, status);
+	}
 	pthread_mutex_unlock(&table->log_mutex);
 }
 

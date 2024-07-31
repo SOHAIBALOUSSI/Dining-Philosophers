@@ -40,7 +40,6 @@ typedef struct  s_philo
 	pthread_mutex_t		*right_fork;
 }               t_philo;
 
-
 typedef struct s_table
 {
 	t_data			*data;
@@ -50,7 +49,7 @@ typedef struct s_table
 	pthread_mutex_t	log_mutex;
 	pthread_mutex_t table_mutex;
 	pthread_mutex_t dead_mutex;
-	bool			dead;
+	bool	dead;
 	long long		start_time;
 }              t_table;
 

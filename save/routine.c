@@ -16,7 +16,7 @@ void	take_forks(t_philo *philo)
         pthread_mutex_lock(philo->right_fork);
         print_status(philo, "has taken a fork");
         pthread_mutex_lock(philo->left_fork);
-    print_status(philo, "has taken a fork");
+    	print_status(philo, "has taken a fork");
 }
 
 void	put_down_forks(t_philo *philo)
@@ -40,7 +40,7 @@ static void eat_state(t_philo *philo)
     {
 		set_last_meal(philo);
         sleep_ms(table->data->time_to_die);
-        return;
+        return ;
     }
     take_forks(philo);
     print_status(philo, "is eating");

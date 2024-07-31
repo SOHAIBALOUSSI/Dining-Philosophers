@@ -27,7 +27,7 @@ static void	destroy_table(void)
 
 static void	start_simulation(void)
 {
-	int i;
+	int		i;
 	t_table *table;
 
 	i = 0;
