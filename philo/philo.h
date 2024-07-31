@@ -75,5 +75,6 @@ bool 	is_someone_dead(t_table *table);
 void 	set_dead_state(t_table *table, bool state);
 void 	increment_meals_eaten(t_philo *philo);
 int		get_meals_eaten(t_philo *philo);
+long long get_last_meal(t_philo *philo);
 
 # endif

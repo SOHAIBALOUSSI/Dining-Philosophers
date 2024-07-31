@@ -38,6 +38,7 @@ void set_last_meal(t_philo *philo)
 	philo->last_meal = getcurrtime();
 	pthread_mutex_unlock(&philo->last_meal_mutex);
 }
+
 static int eat_state(t_philo *philo)
 {
 	t_table *table;
@@ -100,15 +101,13 @@ void	*monitor_routine(void *data)
 		i = 0;
 		while (i < table->data->nb_of_philos)
 		{
-			pthread_mutex_lock(&table->philos[i].last_meal_mutex);
-			if ((getcurrtime() - table->philos[i].last_meal) >= table->data->time_to_die && table->data->nb_of_philos != 1)
+			
+			if ((getcurrtime() - get_last_meal(&table->philos[i])) > table->data->time_to_die && table->data->nb_of_philos != 1)
 			{
 				print_status(&table->philos[i], "died");
 				set_dead_state(table, true);
-				pthread_mutex_unlock(&table->philos[i].last_meal_mutex);
 				return (NULL);
 			}
-			pthread_mutex_unlock(&table->philos[i].last_meal_mutex);
 			i++;
 		}
 	}

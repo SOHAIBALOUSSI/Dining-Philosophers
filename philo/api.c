@@ -10,6 +10,16 @@ int get_meals_eaten(t_philo *philo)
     return (meals);
 }
 
+long long get_last_meal(t_philo *philo)
+{
+    long long last_meal;
+
+    pthread_mutex_lock(&philo->last_meal_mutex);
+    last_meal = philo->last_meal;
+    pthread_mutex_unlock(&philo->last_meal_mutex);
+    return (last_meal);
+}
+
 bool is_someone_dead(t_table *table)
 {
     bool result;
