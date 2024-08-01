@@ -30,8 +30,8 @@ typedef struct  s_data
 typedef struct  s_philo
 {
 	int					id;
-	int					meals_eaten;
-	long long			last_meal;
+	_Atomic int					meals_eaten;
+	_Atomic long long			last_meal;
 	bool				is_dead;
 	pthread_t			thread;
 	pthread_mutex_t		last_meal_mutex;
@@ -49,7 +49,7 @@ typedef struct s_table
 	pthread_mutex_t	log_mutex;
 	pthread_mutex_t table_mutex;
 	pthread_mutex_t dead_mutex;
-	bool	dead;
+	_Atomic bool	dead;
 	long long		start_time;
 }              t_table;
 

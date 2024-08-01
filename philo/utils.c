@@ -39,7 +39,7 @@ bool    all_philos_ate_enough(t_table *table)
 	i = 0;
 	while (i < table->data->nb_of_philos)
 	{
-		if (get_meals_eaten(&table->philos[i]) < table->data->meals)
+		if (table->philos[i].meals_eaten < table->data->meals)
 			return (false);
 		i++;
 	}

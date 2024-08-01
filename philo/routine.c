@@ -1,47 +1,5 @@
 #include "philo.h"
 
-int get_meals_eaten(t_philo *philo)
-{
-    int meals;
-
-    pthread_mutex_lock(&philo->meals_mutex);
-    meals = philo->meals_eaten;
-    pthread_mutex_unlock(&philo->meals_mutex);
-    return (meals);
-}
-
-long long get_last_meal(t_philo *philo)
-{
-    long long last_meal;
-
-    pthread_mutex_lock(&philo->last_meal_mutex);
-    last_meal = philo->last_meal;
-    pthread_mutex_unlock(&philo->last_meal_mutex);
-    return (last_meal);
-}
-
-bool is_someone_dead(t_table *table)
-{
-    bool result;
-    
-    pthread_mutex_lock(&table->dead_mutex);
-    result = table->dead;
-    pthread_mutex_unlock(&table->dead_mutex);
-    return (result);
-}
-void set_dead_state(t_table *table, bool state)
-{
-    pthread_mutex_lock(&table->dead_mutex);
-    table->dead = state;
-    pthread_mutex_unlock(&table->dead_mutex);
-}
-
-void increment_meals_eaten(t_philo *philo)
-{
-    pthread_mutex_lock(&philo->meals_mutex);
-    philo->meals_eaten++;
-    pthread_mutex_unlock(&philo->meals_mutex);
-}
 
 void take_forks(t_philo *philo)
 {
@@ -90,13 +48,15 @@ static int eat_state(t_philo *philo)
 	{
 		sleep_ms(table->data->time_to_die);
 		print_status(philo, "died");
-		set_dead_state(table, true);
+		// set_dead_state(table, true);
+		table->dead = true;
 		return (-1);
 	}
 	take_forks(philo);
 	print_status(philo, "is eating");
-	increment_meals_eaten(philo);
-	set_last_meal(philo);
+	philo->meals_eaten++;
+	philo->last_meal = getcurrtime();
+	// set_last_meal(philo);
 	sleep_ms(table->data->time_to_eat);
 	put_down_forks(philo);
 	return (0);
@@ -110,7 +70,7 @@ void *philo_routine(void *pdata)
 	philo = (t_philo *)pdata;
 	table = get_table();
 	usleep((philo->id % 1000) * 100);
-	while (!is_someone_dead(table))
+	while (!table->dead)
 	{
 		if (eat_state(philo) == 0)
 		{
@@ -130,13 +90,13 @@ void	*monitor_routine(void *data)
 	i = 0;
 	table = get_table();
 	usleep(100);
-	while (!is_someone_dead(table) && !all_philos_ate_enough(table))
+	while (!table->dead && !all_philos_ate_enough(table))
 	{
 		pthread_mutex_lock(&table->table_mutex);
 		i = 0;
 		while (i < table->data->nb_of_philos)
 		{
-			if ((getcurrtime() - get_meals_eaten(&table->philos[i])) > table->data->time_to_die)
+			if ((getcurrtime() - table->philos[i].last_meal) > table->data->time_to_die)
 			{
 				table->dead = true;
 				printf("%lld  %d died\n", getcurrtime() - table->start_time, table->philos[i].id);
