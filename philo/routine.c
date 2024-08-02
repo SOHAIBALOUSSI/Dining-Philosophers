@@ -77,14 +77,6 @@ static int eat_state(t_philo *philo)
 	t_table *table;
 	
 	table = get_table();
-	// if (table->data->nb_of_philos == 1)
-	// {
-	// 	return (-1);
-	// }
-	// pthread_mutex_lock(philo->left_fork);
-	// print_status(philo, "has taken a fork");
-	// pthread_mutex_lock(philo->right_fork);
-	// print_status(philo, "has taken a fork");
 	take_forks(philo);
 	print_status(philo, "is eating");
 	philo->last_meal = getcurrtime();
@@ -109,6 +101,9 @@ void *philo_routine(void *pdata)
 		usleep(100);
 	while (!table->dead)
 	{
+        // printf("1");
+        if (table->data->nb_of_philos == 1)
+            break;
 		if (!eat_state(philo))
 		{
 			print_status(philo, "is thinking");
