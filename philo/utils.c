@@ -49,12 +49,11 @@ bool    all_philos_ate_enough(t_table *table)
 void print_status(t_philo *philo, char *status)
 {
 	t_table *table;
-	bool	is_dead;
+	// bool	is_dead;
 
 	table = get_table();
 	pthread_mutex_lock(&table->log_mutex);
-	if (!table->dead || (table->data->meals != -1
-		&& get_meals_eaten(philo) == table->data->meals))
+	if (!table->dead || (table->data->meals != -1 && philo->meals_eaten >= table->data->meals))
 	{
 		printf("%lld  %d %s\n", getcurrtime() - table->start_time, philo->id, status);
 	}

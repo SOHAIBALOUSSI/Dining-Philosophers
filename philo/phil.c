@@ -92,15 +92,13 @@ void *philo_routine(void *pdata)
 
 	philo = (t_philo *)pdata;
 	table = get_table();
-	// if (philo->id % 2 == 0)
-	// 	usleep(500);
 	while (!table->dead)
 	{
 		if (eat_state(philo) == 0)
 		{
+			print_status(philo, "is thinking");
 			print_status(philo, "is sleeping");
 			sleep_ms(table->data->time_to_sleep);
-			print_status(philo, "is thinking");
 		}
 	}
 	return (NULL);

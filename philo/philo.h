@@ -55,6 +55,8 @@ typedef struct s_table
 
 t_table *get_table(void);
 
+#define RED "\033[0;31m"
+#define RESET  "\033[0m"
 /*		initialize data	*/
 void	init_table(t_data *data, int ac, char **av);
 
