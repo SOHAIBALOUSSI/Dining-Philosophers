@@ -1,7 +1,7 @@
 NAME = philo
 CC = cc
 # CFLAGS = -Wall -Wextra -Werror 
-# CFLAGS = -Wall -Wextra -Werror -fsanitize=thread
+#CFLAGS = -fsanitize=thread #-Wall -Wextra -Werror #
 
 SRCS = philo.c init.c routine.c utils.c api.c
 

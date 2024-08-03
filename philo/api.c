@@ -1,5 +1,12 @@
 #include "philo.h"
 
+void set_last_meal(t_philo *philo)
+{
+	pthread_mutex_lock(&philo->last_meal_mutex);
+	philo->last_meal = getcurrtime();
+	pthread_mutex_unlock(&philo->last_meal_mutex);
+}
+
 int get_meals_eaten(t_philo *philo)
 {
     int meals;

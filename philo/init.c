@@ -18,11 +18,11 @@ static  int	ft_atoi(const char *str)
 		if (str[i] < '0' || str[i] > '9')
 			error("Error: only numbers are allowed\n");
 		result = result * 10;
+		if (result > 2147483647)
+			error("Error: number is too big\n");
 		result += str[i] - '0';
 		i++;
 	}
-	if (result > 2147483647)
-		error("Error: number is too big\n");
 	return (result);
 }
 
