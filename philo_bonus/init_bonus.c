@@ -13,14 +13,14 @@ int	ft_atoi(char *str)
 	if (str[i] == '+' && str[i + 1] != '-')
 		i++;
 	if (str[i] == '-')
-		return (pop_error("Error: arguments cannot be set to negative values\n"), -2);
+		pop_error("Error: arguments cannot be set to negative values\n");
 	while (str[i])
 	{
 		if (str[i] < '0' || str[i] > '9')
-			return (pop_error("Error: only numbers are allowed\n"), -3);
+			pop_error("Error: only numbers are allowed\n");
 		result = result * 10;
 		if (result > 2147483647)
-			return (pop_error("Error: number is too big\n"), -999);
+			pop_error("Error: number is too big\n");
 		result += str[i] - '0';
 		i++;
 	}
