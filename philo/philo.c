@@ -35,7 +35,7 @@ static void	start_simulation(void)
 	while (i < table->data->nb_of_philos)
 	{
 		if (pthread_create(&table->philos[i].thread, NULL, philo_routine, &table->philos[i]))
-			error("Error: pthread_create failed\n");
+			error("Error: pthread_create failed %d\n");
 		i++;
 	}
 	if (pthread_create(&table->monitor, NULL, monitor_routine, NULL))
