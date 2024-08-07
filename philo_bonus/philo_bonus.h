@@ -11,6 +11,10 @@
 # include <semaphore.h>
 # include <fcntl.h>
 
+
+#define RED "\033[0;31m"
+#define RESET  "\033[0m"
+
 # ifndef MAX_PHILOS 
 	# define MAX_PHILOS 227
 # endif /*MAX_PHILOS*/
@@ -48,7 +52,7 @@ typedef struct s_table
 	t_data			*data;
 	// pthread_t		monitor;
 	t_philo			philos[MAX_PHILOS];
-	int				*pids;
+	pid_t				*pids;
 	sem_t			*forks;
 	sem_t			*log_sem;
 	sem_t 			*table_sem;
@@ -60,6 +64,7 @@ typedef struct s_table
 void pop_error(char *msg);
 t_time getcurrtime(void);
 
-int	ft_atoi(char *str);
+int		ft_atoi(char *str);
+bool    all_philos_ate_enough(t_table *table);
 
 #endif /* PHILO_BONUS */

@@ -10,6 +10,9 @@
 # include <sys/time.h>
 
 
+#define RED "\033[0;31m"
+#define RESET  "\033[0m"
+
 # ifndef MAX_PHILOS
 # define MAX_PHILOS 300
 # endif
@@ -55,8 +58,6 @@ typedef struct s_table
 
 t_table *get_table(void);
 
-#define RED "\033[0;31m"
-#define RESET  "\033[0m"
 /*		initialize data	*/
 void	init_table(t_data *data, int ac, char **av);
 
