@@ -30,23 +30,6 @@ void	init_data(t_data *data, int ac, char **av)
 		pop_error("Error: time is too short\n");
 }
 
-// void	init_forks(sem_t **forks, long long pnumber)
-// {
-// 	int i;
-
-// 	i = 0;
-// 	while (i < pnumber)
-// 	{
-// 		forks[i] = sem_open("fork_nb_", O_CREAT, NULL, 1);
-// 		if (forks[i] == SEM_FAILED)
-// 		{
-// 			pop_error("sem_open failed");
-// 			return ;
-// 		}
-// 		i++;
-// 	}
-// }
-
 void	init_philos(t_philo *philo, long long pnumber)
 {
 	int i;
@@ -59,14 +42,12 @@ void	init_philos(t_philo *philo, long long pnumber)
 		philo[i].id = i + 1;
 		philo[i].meals_eaten = 0;
 		philo[i].last_meal = getcurrtime();
-		philo[i].left_fork = &table->forks[i];
-		philo[i].right_fork = &table->forks[(i + 1) % pnumber];
+		philo[i].left_fork = table->forks;
+		philo[i].right_fork = table->forks;
 		philo[i].is_dead = false;
-		philo[i].last_meal = sem_open("last_meal_sem", O_CREAT, 0644, 1);
-		if (philo[i].last_meal == SEM_FAILED)
-			pop_error("Error: sem_open failed\n");
-		philo[i].meals_sem = sem_open("meal_mutex_sem", O_CREAT, 0644, 1);
-		if (philo[i].meals_sem == SEM_FAILED)
+		philo[i].last_meal_sem = sem_open("/last_meal_sem", O_CREAT, 0644, 1);
+		philo[i].meals_sem = sem_open("/meal_mutex_sem", O_CREAT, 0644, 1);
+		if (!philo[i].meals_sem || !philo[i].last_meal_sem)
 			pop_error("Error: sem_open failed\n");
 		i++;
 	}
@@ -75,27 +56,91 @@ void	init_philos(t_philo *philo, long long pnumber)
 
 void	init_table(t_data *data, int ac, char **av)
 {
-	int		i;
 	t_table	*table;
-	// sem_t 	sem;
-	
-	i = 0;
+
 	table = get_table();
 	init_data(data, ac, av);
 	table->data = data;
 	table->dead = false;
 	table->start_time = getcurrtime();
-	table->log_sem = sem_open("log_sem", O_CREAT, 0644, 1);
-	if (table->log_sem == SEM_FAILED)
-		pop_error("Error: sem_open failed\n");
-	table->dead_sem = sem_open("dead_sem", O_CREAT, 0644, 1);
-	if (table->dead_sem == SEM_FAILED)
-		pop_error("Error: sem_open failed\n");
-	// init_forks(table->forks, data->nb_of_philos);
-	table->forks = sem_open("forks", O_CREAT, 0644, data->nb_of_philos);
-	if (table->forks == SEM_FAILED)
+	table->forks = sem_open("/forks", O_CREAT, 0644, data->nb_of_philos);
+	table->log_sem = sem_open("/log_sem", O_CREAT, 0644, 1);
+	table->dead_sem = sem_open("/dead_sem", O_CREAT, 0644, 1);
+	table->pids = malloc(sizeof(int) * data->nb_of_philos);
+	if (!table->pids)
+		pop_error("malloc failed!");
+	if (!table->forks || !table->log_sem || !table->dead_sem)
 		pop_error("Error : sem_open failed\n");
 	init_philos(table->philos, data->nb_of_philos);
+}
+
+void	monitor_routine(void *data)
+{
+	t_table *table;
+	t_philo *pdata;
+
+	table = get_table();
+	pdata = (t_philo *)data;
+	///
+}
+int	eat_state(t_philo *philo)
+{
+	t_table	*table;
+
+	table = get_table();
+	
+}
+
+
+void	run_philo(t_philo *pdata)
+{
+	t_table *table;
+	t_philo	*philo;
+
+	philo = (t_philo *)pdata;
+	table = get_table();
+
+	if (pthread_create(&pdata->monitor, NULL, monitor_routine, pdata) == 0)
+		pop_error("pthread_create failed!\n");
+	// start philo routine
+	if (philo->id % 2)
+		usleep(philo->id * 100);
+	while (!table->dead)
+	{
+		if (eat_state(philo))
+			break;
+		if (!table->dead)
+		{
+			print_status(philo, "is sleeping");
+			sleep_ms(table->data->time_to_sleep);
+			print_status(philo, "is thinking");
+			usleep(100);
+		}
+	}
+	return (NULL);
+	// join monitor thread
+}
+
+void	start_simulation(void)
+{
+	t_table *table;
+	int		i;
+
+	table = get_table();
+	i = 0;
+	while (i < table->data->nb_of_philos)
+	{
+		table->pids[i] = fork();
+		if (table->pids[i] == -1)
+		{
+			pop_error("failed in fork()\n");
+			return ;
+		}
+		if (table->pids[i] == 0)
+			run_philo(&table->philos[i]);
+		i++;
+	}
+	
 }
 
 int main(int ac, char **av)
@@ -105,6 +150,6 @@ int main(int ac, char **av)
 	if (ac != 5 && ac != 6)
 		pop_error(USAGE);
 	init_table(&data, ac, av);
-	// start_simulation();
+	start_simulation();
 	return (0);
 }

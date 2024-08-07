@@ -35,8 +35,8 @@ typedef struct  s_philo
 	int					id;
 	_Atomic int			meals_eaten;
 	_Atomic long long	last_meal;
-	// pthread_t			thread;
-	bool		is_dead;
+	pthread_t			monitor;
+	bool				is_dead;
 	sem_t		*last_meal_sem;
 	sem_t		*meals_sem;
 	sem_t		*left_fork;
@@ -48,6 +48,7 @@ typedef struct s_table
 	t_data			*data;
 	// pthread_t		monitor;
 	t_philo			philos[MAX_PHILOS];
+	int				*pids;
 	sem_t			*forks;
 	sem_t			*log_sem;
 	sem_t 			*table_sem;
