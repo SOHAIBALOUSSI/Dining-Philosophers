@@ -136,6 +136,8 @@ int	eat_state(t_philo *philo)
 	t_table	*table;
 
 	table = get_table();
+	
+	printf("eating\n");
 	sem_wait(table->forks);
 	print_status(philo, "has taken a fork");
 	sem_wait(table->forks);
@@ -147,8 +149,8 @@ int	eat_state(t_philo *philo)
 	philo->meals_eaten++;
 	sem_post(table->forks);
 	sem_post(table->forks);
-	if (table->data->meals != -1 && philo->meals_eaten >= table->data->meals)
-		return (1);
+	// if (table->data->meals != -1 && philo->meals_eaten >= table->data->meals)
+	// 	return (1);
 	return (0);
 }
 
@@ -160,11 +162,13 @@ void	*run_philo(t_philo *pdata)
 
 	philo = (t_philo *)pdata;
 	table = get_table();
+	printf("entred run philo\n");
 	if (pthread_create(&pdata->monitor, NULL, monitor_routine, pdata))
 		pop_error("pthread_create failed!\n");
 	// start philo routine
-	if (philo->id % 2)
-		usleep(philo->id * 100);
+	// if (philo->id % 2)
+	// 	usleep(philo->id * 100);
+
 	while (!table->dead)
 	{
 		if (eat_state(philo))
@@ -177,30 +181,31 @@ void	*run_philo(t_philo *pdata)
 			usleep(100);
 		}
 	}
+	if (pthread_join(pdata->monitor, NULL))
+		pop_error("pthread_join failed\n");
 	return (NULL);
-	// join monitor thread
+	
 }
 
 void	start_simulation(void)
 {
-	t_table *table;
 	int		i;
+	t_table *table;
 
-	table = get_table();
 	i = 0;
+	table = get_table();
 	while (i < table->data->nb_of_philos)
 	{
 		table->pids[i] = fork();
+		if (table->pids[i] == 0)
+			run_philo(&table->philos[i]);
 		if (table->pids[i] == -1)
 		{
 			pop_error("failed in fork()\n");
 			return ;
 		}
-		if (table->pids[i] == 0)
-			run_philo(&table->philos[i]);
 		i++;
 	}
-	
 }
 
 void	pkill(void)
@@ -209,6 +214,7 @@ void	pkill(void)
 	t_table *table;
 
 	table = get_table();
+	// printf("kill\n");
 	while (i < table->data->nb_of_philos)
 	{
 		kill(table->pids[i], 9);

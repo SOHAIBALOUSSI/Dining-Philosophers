@@ -10,7 +10,9 @@
 # include <sys/time.h>
 # include <semaphore.h>
 # include <fcntl.h>
-
+# include <sys/types.h>
+# include <signal.h>
+# include <sys/wait.h>
 
 #define RED "\033[0;31m"
 #define RESET  "\033[0m"
@@ -52,7 +54,7 @@ typedef struct s_table
 	t_data			*data;
 	// pthread_t		monitor;
 	t_philo			philos[MAX_PHILOS];
-	pid_t				*pids;
+	pid_t			*pids;
 	sem_t			*forks;
 	sem_t			*log_sem;
 	sem_t 			*table_sem;
