@@ -51,6 +51,7 @@ void	init_philos(t_philo *philo, long long pnumber)
 		philo[i].meals_eaten = 0;
 		philo[i].last_meal = getcurrtime();
 		philo[i].is_dead = false;
+		sem_unlink("/last_meal");
 		philo[i].last_meal_sem = sem_open("/last_meal", O_CREAT, 0644, 1);
 		if (philo[i].last_meal_sem == SEM_FAILED)
 			pop_error("SEM_FAILED\n");
@@ -61,20 +62,22 @@ void	init_philos(t_philo *philo, long long pnumber)
 
 void	init_table(t_data *data, int ac, char **av)
 {
-	t_table	*table;
+	t_table *table;
 
 	table = get_table();
 	init_data(data, ac, av);
 	table->data = data;
-	table->dead = false;
 	table->start_time = getcurrtime();
+	sem_unlink("/forks");
+	sem_unlink("/log_sem");
+	sem_unlink("/dead_sem");
 	table->forks = sem_open("/forks", O_CREAT, 0644, data->nb_of_philos);
 	table->log_sem = sem_open("/log_sem", O_CREAT, 0644, 1);
 	table->dead_sem = sem_open("/dead_sem", O_CREAT, 0644, 0);
-	table->pids = malloc(sizeof(int) * data->nb_of_philos);
+	table->pids = malloc(sizeof(pid_t) * data->nb_of_philos);
 	if (!table->pids)
 		pop_error("malloc failed!");
-	if (!table->forks || !table->log_sem || !table->dead_sem)
+	if (table->forks == SEM_FAILED || table->log_sem == SEM_FAILED || table->dead_sem == SEM_FAILED)
 		pop_error("Error : sem_open failed\n");
 	init_philos(table->philos, data->nb_of_philos);
 }
@@ -116,11 +119,11 @@ void	*monitor_routine(void *data)
 	return (NULL);
 }
 
-void	philosopher_actions(t_philo *philo, t_table *table)
+void philosopher_actions(t_philo *philo, t_table *table)
 {
 	sem_wait(table->forks);
-	sem_wait(table->forks);
 	print_status(philo, "has taken a fork");
+	sem_wait(table->forks);
 	print_status(philo, "has taken a fork");
 	print_status(philo, "is eating");
 	sem_wait(philo->last_meal_sem);
@@ -145,7 +148,7 @@ void	*run_philo(void *data)
 	if (pthread_create(&philo->monitor, NULL, monitor_routine, philo))
 		pop_error("pthread_create failed!\n");
 	if (philo->id % 2)
-		usleep(10000);
+		usleep(philo->id * 100);
 	while (!table->dead)
 		philosopher_actions(philo, table);
 	if (pthread_join(philo->monitor, NULL))
@@ -181,17 +184,12 @@ void	end_simulation(void)
 
 	table = get_table();
 	sem_wait(table->dead_sem);
+	print_status(&table->philos[0], RED"died"RESET);
 	table->dead = true;
 	i = 0;
 	while (i < table->data->nb_of_philos)
 	{
-		kill(table->pids[i], SIGTERM);
-		i++;
-	}
-	i = 0;
-	while (i < table->data->nb_of_philos)
-	{
-		waitpid(table->pids[i], NULL, 0);
+		kill(table->pids[i], SIGKILL);
 		i++;
 	}
 }

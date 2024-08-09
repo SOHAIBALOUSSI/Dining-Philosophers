@@ -43,7 +43,6 @@ typedef struct  s_philo
 	long long	last_meal;
 	pthread_t			monitor;
 	bool				is_dead;
-	// sem_t		*last_meal_sem;
 	sem_t		*last_meal_sem;
 }               t_philo;
 
