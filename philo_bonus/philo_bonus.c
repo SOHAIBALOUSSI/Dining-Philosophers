@@ -12,8 +12,6 @@ void sleep_ms(long long ms)
 	long long start;
 
 	start = getcurrtime();
-	if (ms - 10 > 0)
-		usleep(ms - 10);
 	while (getcurrtime() - start < ms)
 		usleep(50);
 }
@@ -53,6 +51,9 @@ void	init_philos(t_philo *philo, long long pnumber)
 		philo[i].meals_eaten = 0;
 		philo[i].last_meal = getcurrtime();
 		philo[i].is_dead = false;
+		philo[i].last_meal_sem = sem_open("/last_meal", O_CREAT, 0644, 1);
+		if (philo[i].last_meal_sem == SEM_FAILED)
+			pop_error("SEM_FAILED\n");
 		i++;
 	}
 }
@@ -69,7 +70,7 @@ void	init_table(t_data *data, int ac, char **av)
 	table->start_time = getcurrtime();
 	table->forks = sem_open("/forks", O_CREAT, 0644, data->nb_of_philos);
 	table->log_sem = sem_open("/log_sem", O_CREAT, 0644, 1);
-	table->dead_sem = sem_open("/dead_sem", O_CREAT, 0644, 1);
+	table->dead_sem = sem_open("/dead_sem", O_CREAT, 0644, 0);
 	table->pids = malloc(sizeof(int) * data->nb_of_philos);
 	if (!table->pids)
 		pop_error("malloc failed!");
@@ -89,131 +90,122 @@ void	print_status(t_philo *philo, char *status)
 	sem_post(table->log_sem);
 }
 
-void *monitor_routine(void *data)
-{
-    t_philo *philo = (t_philo *)data;
-    t_table *table = get_table();
-    t_time current_time;
+#include "philo_bonus.h"
 
-    while (!table->dead)
-	{
-        current_time = getcurrtime();
-        if ((current_time - philo->last_meal) > table->data->time_to_die)
-		{
-            table->dead = true;
-            print_status(philo, "died");
-            sem_post(table->dead_sem);
-			return (NULL);
-        }
-        usleep(1000);
-    }
-    return NULL;
-}
-int	eat_state(t_philo *philo)
+void	*monitor_routine(void *data)
 {
+	t_philo	*philo;
 	t_table	*table;
+	t_time	current_time;
+
+	philo = (t_philo *)data;
 	table = get_table();
-	
+	while (!table->dead)
+	{
+		current_time = getcurrtime();
+		sem_wait(philo->last_meal_sem);
+		if ((current_time - philo->last_meal) > table->data->time_to_die)
+		{
+			sem_post(table->dead_sem);
+			sem_post(philo->last_meal_sem);
+			return (NULL);
+		}
+		sem_post(philo->last_meal_sem);
+		usleep(1000);
+	}
+	return (NULL);
+}
+
+void	philosopher_actions(t_philo *philo, t_table *table)
+{
 	sem_wait(table->forks);
 	sem_wait(table->forks);
 	print_status(philo, "has taken a fork");
 	print_status(philo, "has taken a fork");
 	print_status(philo, "is eating");
+	sem_wait(philo->last_meal_sem);
 	philo->last_meal = getcurrtime();
-	if (!table->dead)
-		sleep_ms(table->data->time_to_eat);
 	philo->meals_eaten++;
+	sem_post(philo->last_meal_sem);
+	sleep_ms(table->data->time_to_eat);
 	sem_post(table->forks);
 	sem_post(table->forks);
-	// if (table->data->meals != -1 && philo->meals_eaten >= table->data->meals)
-	// 	return (1);
-	return (0);
+	print_status(philo, "is sleeping");
+	sleep_ms(table->data->time_to_sleep);
+	print_status(philo, "is thinking");
 }
 
-
-void	*run_philo(t_philo *pdata)
+void	*run_philo(void *data)
 {
-	t_table *table;
 	t_philo	*philo;
+	t_table	*table;
 
-	philo = (t_philo *)pdata;
+	philo = (t_philo *)data;
 	table = get_table();
-
-	if (pthread_create(&pdata->monitor, NULL, monitor_routine, pdata))
+	if (pthread_create(&philo->monitor, NULL, monitor_routine, philo))
 		pop_error("pthread_create failed!\n");
-	if (pthread_detach(pdata->monitor))
-		pop_error("pthread_detach failed\n");
+	if (philo->id % 2)
+		usleep(10000);
 	while (!table->dead)
-	{
-		if (eat_state(philo))
-			break ;
-		print_status(philo, "is sleeping");
-		sleep_ms(table->data->time_to_sleep);
-		print_status(philo, "is thinking");
-		usleep(100);
-	}
+		philosopher_actions(philo, table);
+	if (pthread_join(philo->monitor, NULL))
+		pop_error("pthread_join failed\n");
 	return (NULL);
-	
 }
 
 void	start_simulation(void)
 {
 	int		i;
-	t_table *table;
-	pid_t	pid;
+	t_table	*table;
 
 	i = 0;
 	table = get_table();
 	while (i < table->data->nb_of_philos)
 	{
-		pid = fork();
-		if (pid == 0)
+		table->pids[i] = fork();
+		if (table->pids[i] == 0)
 		{
 			run_philo(&table->philos[i]);
-			
 			exit(0);
 		}
-		table->pids[i] = pid;
+		else if (table->pids[i] == -1)
+			pop_error("failed in fork()\n");
 		i++;
 	}
 }
 
-void	pkill(void)
+void	end_simulation(void)
 {
-	int i = 0;
-	t_table *table;
-
-	table = get_table();
-	while (i < table->data->nb_of_philos)
-	{
-		kill(table->pids[i], 9);
-		i++;
-	}
-}
-void end_simulation(void)
-{
-	t_table *table;
+	int		i;
+	t_table	*table;
 
 	table = get_table();
 	sem_wait(table->dead_sem);
-	pkill();
+	table->dead = true;
+	i = 0;
+	while (i < table->data->nb_of_philos)
+	{
+		kill(table->pids[i], SIGTERM);
+		i++;
+	}
+	i = 0;
+	while (i < table->data->nb_of_philos)
+	{
+		waitpid(table->pids[i], NULL, 0);
+		i++;
+	}
 }
 
 int main(int ac, char **av)
 {
 	t_data	data;
+	int		i;
 
+	i = 0;
 	if (ac != 5 && ac != 6)
 		pop_error(USAGE);
 	init_table(&data, ac, av);
 	start_simulation();
-	while (1)
-	{
-		if (get_table()->dead)
-			break ;
-		if (all_philos_ate_enough(get_table()))
-			break ;
-	}
 	end_simulation();
 	return (0);
 }
