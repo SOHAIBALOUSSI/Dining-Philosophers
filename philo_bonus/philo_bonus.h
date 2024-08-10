@@ -57,6 +57,8 @@ typedef struct s_table
 	sem_t 			*table_sem;
 	sem_t			*dead_sem;
 	sem_t			*last_meal_sem;
+	sem_t			*full_sem;
+	_Atomic	int		finish_eat;
 	_Atomic bool	dead;
 	long long		start_time;
 }              t_table;
