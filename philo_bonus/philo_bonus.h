@@ -43,12 +43,13 @@ typedef struct  s_philo
 	t_time				last_meal;
 	pthread_t			monitor;
 	bool				is_dead;
+	bool				is_full;
 }               t_philo;
 
 typedef struct s_table
 {
 	t_data			*data;
-	// pthread_t		monitor;
+	pthread_t		boss;
 	t_philo			philos[MAX_PHILOS];
 	pid_t			*pids;
 	sem_t			*forks;
