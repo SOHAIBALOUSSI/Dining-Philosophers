@@ -39,11 +39,10 @@ typedef struct  s_data
 typedef struct  s_philo
 {
 	int					id;
-	int			meals_eaten;
-	long long	last_meal;
+	int					meals_eaten;
+	t_time				last_meal;
 	pthread_t			monitor;
 	bool				is_dead;
-	sem_t		*last_meal_sem;
 }               t_philo;
 
 typedef struct s_table
@@ -56,6 +55,7 @@ typedef struct s_table
 	sem_t			*log_sem;
 	sem_t 			*table_sem;
 	sem_t			*dead_sem;
+	sem_t			*last_meal_sem;
 	_Atomic bool	dead;
 	long long		start_time;
 }              t_table;
