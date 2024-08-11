@@ -6,6 +6,28 @@ t_table	*get_table(void)
 	static t_table table;
 	return (&table);
 }
+__attribute__((destructor)) void	destroyer(void)
+{
+	int i = 0;
+	t_table *table;
+
+	table = get_table();
+	free(table->pids);
+		sem_unlink("/forks");
+	sem_unlink("/log");
+	sem_unlink("/dead");
+	sem_unlink("/last_meal");
+	sem_unlink("/full");
+	// sem_close(table->forks);
+	// sem_close(table->log_sem);
+	// sem_close(table->table_sem);
+	// sem_close(table->dead_sem);
+	// sem_close(table->last_meal_sem);
+	// sem_close(table->full_sem);
+
+}
+
+
 
 void sleep_ms(long long ms)
 {
@@ -77,7 +99,8 @@ void	init_table(t_data *data, int ac, char **av)
 	table->finish_eat = 0;
 	if (!table->pids)
 		pop_error("malloc failed!");
-	if (!table->forks || !table->log_sem || !table->dead_sem || !table->last_meal_sem || !table->full_sem)
+	if (!table->forks || !table->log_sem || !table->dead_sem ||
+		!table->last_meal_sem || !table->full_sem)
 		pop_error("Error : sem_open failed\n");
 	init_philos(table->philos, data->nb_of_philos);
 }
@@ -105,7 +128,7 @@ void	*monitor_routine(void *data)
 	{
 		current_time = getcurrtime();
 		sem_wait(table->last_meal_sem);
-		if ((current_time - philo->last_meal) >= table->data->time_to_die)
+		if ((current_time - philo->last_meal) > table->data->time_to_die)
 		{
 			table->dead = true;
 			sem_wait(table->log_sem);
@@ -113,6 +136,7 @@ void	*monitor_routine(void *data)
 			sem_close(table->log_sem);
 			sem_post(table->dead_sem);
 			sem_post(table->last_meal_sem);
+			// sleep(10);
 			return (NULL);
 		}
 		sem_post(table->last_meal_sem);
@@ -171,6 +195,7 @@ void	*check_full(void *data)
 	}
 	sem_post(table->dead_sem);
 	table->dead = true;
+	return (NULL);
 }
 
 void	start_simulation(void)
@@ -196,6 +221,8 @@ void	start_simulation(void)
 		}
 		i++;
 	}
+	sem_post(table->start_sem);
+
 }
 
 void	end_simulation(void)
@@ -205,8 +232,10 @@ void	end_simulation(void)
 
 	i = 0;
 	table = get_table();
+	// sem_post(table->dead_sem);
+	sem_wait(table->start_sem);
 	sem_wait(table->dead_sem);
-	table->dead = true;
+	// table->dead = true;
 	while (i < table->data->nb_of_philos)
 	{
 		if (kill(table->pids[i], SIGKILL))

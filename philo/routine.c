@@ -69,8 +69,9 @@ void *philo_routine(void *pdata)
 		usleep(philo->id * 100);
 	while (!table->dead)
 	{
-		print_status(philo, "is thinking");
-		if (eat_state(philo))
+		if (!table->dead)
+			print_status(philo, "is thinking");
+		if (!table->dead && eat_state(philo))
 			break;
 		if (!table->dead)
 		{
@@ -85,22 +86,21 @@ void *monitor_routine(void *data)
 {
 	t_table *table;
 	int i;
-	long long ct;
 
 	table = get_table();
+	// i = 0;
 	while (!table->dead && !all_philos_ate_enough(table))
 	{
+		i = 0;
 		while (i < table->data->nb_of_philos)
 		{
-			i = 0;
-			ct = getcurrtime();
 			if (table->data->meals == -1 || table->data->meals < table->philos[i].meals_eaten)
 			{
-				if ((ct - table->philos[i].last_meal) >= table->data->time_to_die)
+				if ((getcurrtime() - table->philos[i].last_meal) > table->data->time_to_die)
 				{
 					table->dead = true;
 					pthread_mutex_lock(&table->log_mutex);
-					printf(RED"%lld  %d died\n"RESET, ct - table->start_time, table->philos[i].id);
+					printf(RED"%lld  %d died\n"RESET, getcurrtime() - table->start_time, table->philos[i].id);
 					pthread_mutex_unlock(&table->log_mutex);
 					return (NULL);
 				}
