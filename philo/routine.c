@@ -65,18 +65,17 @@ void *philo_routine(void *pdata)
 
 	philo = (t_philo *)pdata;
 	table = get_table();
-	
 	if (philo->id % 2)
 		usleep(philo->id * 100);
 	while (!table->dead)
 	{
+		print_status(philo, "is thinking");
 		if (eat_state(philo))
 			break;
 		if (!table->dead)
 		{
 			print_status(philo, "is sleeping");
 			sleep_ms(table->data->time_to_sleep);
-			print_status(philo, "is thinking");
 			usleep(100);
 		}
 	}
@@ -97,7 +96,7 @@ void *monitor_routine(void *data)
 			ct = getcurrtime();
 			if (table->data->meals == -1 || table->data->meals < table->philos[i].meals_eaten)
 			{
-				if ((ct - table->philos[i].last_meal) > table->data->time_to_die)
+				if ((ct - table->philos[i].last_meal) >= table->data->time_to_die)
 				{
 					table->dead = true;
 					pthread_mutex_lock(&table->log_mutex);

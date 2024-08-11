@@ -68,7 +68,7 @@ void	init_table(t_data *data, int ac, char **av)
 	sem_unlink("/dead");
 	sem_unlink("/last_meal");
 	sem_unlink("/full");
-	table->full_sem = sem_open("/full", O_CREAT, 0644, data->nb_of_philos);
+	table->full_sem = sem_open("/full", O_CREAT, 0644, 0);
 	table->last_meal_sem = sem_open("/last_meal", O_CREAT, 0644, 1);
 	table->forks = sem_open("/forks", O_CREAT, 0644, data->nb_of_philos);
 	table->log_sem = sem_open("/log", O_CREAT, 0644, 1);
@@ -101,13 +101,16 @@ void	*monitor_routine(void *data)
 
 	philo = (t_philo *)data;
 	table = get_table();
-	while (!table->dead && philo->meals_eaten <= table->data->meals)
+	while (!table->dead)
 	{
 		current_time = getcurrtime();
 		sem_wait(table->last_meal_sem);
-		if ((current_time - philo->last_meal) > table->data->time_to_die)
+		if ((current_time - philo->last_meal) >= table->data->time_to_die)
 		{
-			print_status(&table->philos[0], RED"died"RESET);
+			table->dead = true;
+			sem_wait(table->log_sem);
+			printf(RED"%lld  %d %s\n"RESET, getcurrtime() - table->start_time, philo->id, "died");
+			sem_close(table->log_sem);
 			sem_post(table->dead_sem);
 			sem_post(table->last_meal_sem);
 			return (NULL);
@@ -130,9 +133,7 @@ void philosopher_actions(t_philo *philo, t_table *table)
     philo->last_meal = getcurrtime();
     philo->meals_eaten++;
     if (table->data->meals != -1 && philo->meals_eaten >= table->data->meals)
-    {
 		sem_post(table->full_sem);
-    }
     sem_post(table->last_meal_sem);
 	sleep_ms(table->data->time_to_eat);
 	sem_post(table->forks);
@@ -156,6 +157,21 @@ void	*run_philo(void *data)
 		philosopher_actions(philo, table);
 	return (NULL);
 }
+void	*check_full(void *data)
+{
+	t_table	*table;
+	int		i;
+
+	table = get_table();
+	i = 0;
+	while (i < table->data->nb_of_philos)
+	{
+		sem_wait(table->full_sem);
+		i++;
+	}
+	sem_post(table->dead_sem);
+	table->dead = true;
+}
 
 void	start_simulation(void)
 {
@@ -164,6 +180,10 @@ void	start_simulation(void)
 
 	i = 0;
 	table = get_table();
+	if (pthread_create(&table->boss, NULL, check_full, NULL))
+		pop_error("pthread_create failed\n");
+	if (pthread_detach(table->boss))
+		pop_error("pthread_join failed\n");
 	while (i < table->data->nb_of_philos)
 	{
 		table->pids[i] = fork();
