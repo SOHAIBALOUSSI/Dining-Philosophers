@@ -8,15 +8,14 @@ void error(char *msg)
 	while (msg[size])
 		size++;
 	write(2, msg, size);
-	exit(EXIT_FAILURE);
+	// exit(EXIT_FAILURE);
 }
 
 long long getcurrtime(void)
 {
 	struct timeval tv;
 
-	if (gettimeofday(&tv, NULL))
-		return (error("Error: gettimeofday failed\n"), -1);
+	gettimeofday(&tv, NULL);
 	return ((tv.tv_sec * 1000) + (tv.tv_usec / 1000));
 }
 
@@ -25,8 +24,6 @@ void sleep_ms(long long ms)
 	long long start;
 
 	start = getcurrtime();
-	if (ms - 10 > 0)
-		usleep(ms - 10);
 	while (getcurrtime() - start < ms)
 		usleep(50);
 }

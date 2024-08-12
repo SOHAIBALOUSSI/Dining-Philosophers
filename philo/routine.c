@@ -88,7 +88,6 @@ void *monitor_routine(void *data)
 	int i;
 
 	table = get_table();
-	// i = 0;
 	while (!table->dead && !all_philos_ate_enough(table))
 	{
 		i = 0;

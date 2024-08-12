@@ -8,6 +8,7 @@
 # include <pthread.h>
 # include <stdbool.h>
 # include <sys/time.h>
+# include <limits.h>
 
 
 #define RED "\033[0;31m"
@@ -22,11 +23,11 @@
 
 typedef struct  s_data
 {
-	long long	nb_of_philos;
-	long long	time_to_die;
-	long long	time_to_eat;
-	long long	time_to_sleep;
-	int			meals;
+	int		nb_of_philos;
+	int		time_to_die;
+	int		time_to_eat;
+	int		time_to_sleep;
+	int		meals;
 }               t_data;
 
 
@@ -59,7 +60,7 @@ typedef struct s_table
 t_table *get_table(void);
 
 /*		initialize data	*/
-void	init_table(t_data *data, int ac, char **av);
+int		init_table(t_data *data, int ac, char **av);
 
 /*		Routines		*/
 void	*philo_routine(void *pdata);
