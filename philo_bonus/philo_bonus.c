@@ -8,7 +8,6 @@ t_table	*get_table(void)
 }
 __attribute__((destructor)) void	destroyer(void)
 {
-	int i = 0;
 	t_table *table;
 
 	table = get_table();
@@ -122,7 +121,7 @@ void	*monitor_routine(void *data)
 {
 	t_philo	*philo;
 	t_table	*table;
-	t_time last_meal_time;
+	t_time	last_meal_time;
 
 	philo = (t_philo *)data;
 	table = get_table();
@@ -133,10 +132,8 @@ void	*monitor_routine(void *data)
 		sem_post(table->last_meal_sem);
 		if ((getcurrtime() - last_meal_time) > table->data->time_to_die)
 		{
-			sem_wait(table->died);
 			sem_wait(table->log_sem);
 			printf(RED"%lld  %d %s\n"RESET, getcurrtime() - table->start_time, philo->id, "died");
-			sem_post(table->log_sem);
 			sem_wait(table->dead_sem);
 			return (NULL);
 		}
@@ -256,7 +253,6 @@ void	end_simulation(void)
 			break;
 		usleep(1000);
 	}
-	printf("salina\n");
 	table->dead = true;
 	while (i < table->data->nb_of_philos)
 	{
