@@ -1,6 +1,5 @@
 #include "philo_bonus.h"
 
-
 int	ft_atoi(char *str)
 {
 	int		i;

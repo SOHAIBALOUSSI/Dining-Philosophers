@@ -1,4 +1,30 @@
 #include "philo_bonus.h"
+
+int	ft_atoi(char *str)
+{
+	int		i;
+	long	result;
+
+	i = 0;
+	result = 0;
+	while (str[i] == ' ' || str[i] == '\n' || str[i] == '\t')
+		i++;
+	if (str[i] == '+' && str[i + 1] != '-')
+		i++;
+	if (str[i] == '-')
+		pop_error("Error: arguments cannot be set to negative values\n");
+	while (str[i])
+	{
+		if (str[i] < '0' || str[i] > '9')
+			pop_error("Error: only numbers are allowed\n");
+		result = result * 10;
+		if (result > 2147483647)
+			pop_error("Error: number is too big\n");
+		result += str[i] - '0';
+		i++;
+	}
+	return (result);
+}#include "philo_bonus.h"
 #include "string.h"
 
 t_table	*get_table(void)
@@ -13,18 +39,18 @@ __attribute__((destructor)) void	destroyer(void)
 
 	table = get_table();
 	free(table->pids);
-	sem_close(table->forks);
-	sem_close(table->log_sem);
-	sem_close(table->dead_sem);
-	sem_close(table->last_meal_sem);
-	sem_close(table->full_sem);
-	sem_close(table->died);
 	sem_unlink("/forks");
 	sem_unlink("/log");
 	sem_unlink("/dead");
 	sem_unlink("/last_meal");
 	sem_unlink("/full");
-	sem_unlink("/died");
+	// sem_close(table->forks);
+	// sem_close(table->log_sem);
+	// sem_close(table->table_sem);
+	// sem_close(table->dead_sem);
+	// sem_close(table->last_meal_sem);
+	// sem_close(table->full_sem);
+
 }
 
 
@@ -112,72 +138,59 @@ void	print_status(t_philo *philo, char *status)
 	t_table *table;
 
 	table = get_table();
-	sem_wait(table->log_sem);
+	// sem_wait(table->log_sem);
+	sem_wait(table->died);
 	if (!table->dead || (table->data->meals != -1 && philo->meals_eaten >= table->data->meals))
 		printf("%lld  %d %s\n", getcurrtime() - table->start_time, philo->id, status);
-	sem_post(table->log_sem);
+	sem_post(table->died);
+	// sem_post(table->log_sem);
 }
 
 void	*monitor_routine(void *data)
 {
 	t_philo	*philo;
 	t_table	*table;
-	t_time last_meal_time;
+	t_time	current_time;
 
 	philo = (t_philo *)data;
 	table = get_table();
-	while (1)
+	while (!table->dead)
 	{
 		sem_wait(table->last_meal_sem);
-		last_meal_time = philo->last_meal;
-		sem_post(table->last_meal_sem);
-		if ((getcurrtime() - last_meal_time) > table->data->time_to_die)
+		current_time = getcurrtime();
+		if ((current_time - philo->last_meal) > table->data->time_to_die)
 		{
+			// table->dead = true;
 			sem_wait(table->died);
-			sem_wait(table->log_sem);
-			printf(RED"%lld  %d %s\n"RESET, getcurrtime() - table->start_time, philo->id, "died");
-			sem_post(table->log_sem);
+			printf(RED"%lld  %d %s\n"RESET, current_time - table->start_time, philo->id, "died");
+			sem_post(table->last_meal_sem);
 			sem_wait(table->dead_sem);
 			return (NULL);
 		}
+		sem_post(table->last_meal_sem);
 		usleep(1000);
 	}
 	return (NULL);
 }
 
-void	take_forks(t_philo *philo, t_table *table)
-{
-	sem_wait(table->forks);
-	print_status(philo, "has taken a fork");
-	sem_wait(table->forks);
-	print_status(philo, "has taken a fork");
-}
-
-void	eat(t_philo *philo, t_table *table)
-{
-	print_status(philo, "is eating");
-	sem_wait(table->last_meal_sem);
-	philo->last_meal = getcurrtime();
-	philo->meals_eaten++;
-	if (table->data->meals != -1 && philo->meals_eaten >= table->data->meals)
-		sem_wait(table->full_sem);	
-	sem_post(table->last_meal_sem);
-	sleep_ms(table->data->time_to_eat);
-}
-
-void	release_forks(t_table *table)
-{
-	sem_post(table->forks);
-	sem_post(table->forks);
-}
-
-void	philosopher_actions(t_philo *philo, t_table *table)
+void philosopher_actions(t_philo *philo, t_table *table)
 {
 	print_status(philo, "is thinking");
 	usleep(100);
-	take_forks(philo, table);
-	eat(philo, table);
-	release_forks(table);
+	sem_wait(table->forks);
+	print_status(philo, "has taken a fork");
+	sem_wait(table->forks);
+	print_status(philo, "has taken a fork");
+	print_status(philo, "is eating");
+    sem_wait(table->last_meal_sem);
+    philo->last_meal = getcurrtime();
+    philo->meals_eaten++;
+    if (table->data->meals != -1 && philo->meals_eaten >= table->data->meals)
+		sem_wait(table->full_sem);
+    sem_post(table->last_meal_sem);
+	sleep_ms(table->data->time_to_eat);
+	sem_post(table->forks);
+	sem_post(table->forks);
 	print_status(philo, "is sleeping");
 	sleep_ms(table->data->time_to_sleep);
 }
@@ -200,8 +213,8 @@ void	*run_philo(void *data)
 
 void	*check_full(void *data)
 {
-	int		i;
 	t_table	*table;
+	int		i;
 
 	i = 0;
 	table = get_table();
@@ -209,11 +222,10 @@ void	*check_full(void *data)
 	{
 		if (table->full_sem->__align == 0)
 			break;
-		usleep(1000);
 	}
-		// printf("salina f check_full\n");
-	// table->dead = true;
-	sem_wait(table->dead_sem);
+	printf("cheb3o\n");
+	sem_post(table->dead_sem);
+	table->dead = true;
 	return (NULL);
 }
 
@@ -236,7 +248,6 @@ void	start_simulation(void)
 		if (table->pids[i] == 0)
 		{
 			run_philo(&table->philos[i]);
-			printf("makhasoch ykhrj\n");
 			exit(0);
 		}
 		i++;
@@ -254,9 +265,7 @@ void	end_simulation(void)
 	{
 		if (table->dead_sem->__align == 0)
 			break;
-		usleep(1000);
 	}
-	printf("salina\n");
 	table->dead = true;
 	while (i < table->data->nb_of_philos)
 	{
@@ -264,8 +273,6 @@ void	end_simulation(void)
 			pop_error("kill failed\n");
 		i++;
 	}
-	sem_post(table->died);
-	sem_post(table->dead_sem);
 }
 
 int main(int ac, char **av)
@@ -278,4 +285,114 @@ int main(int ac, char **av)
 	start_simulation();
 	end_simulation();
 	return (0);
+}#include "philo_bonus.h"
+
+void pop_error(char *msg)
+{
+	size_t size;
+
+	size = 0;
+	while (msg[size])
+		size++;
+	write(2, msg, size);
+	exit(EXIT_FAILURE);
 }
+
+ 
+t_time getcurrtime(void)
+{
+	struct timeval tv;
+
+	if (gettimeofday(&tv, NULL))
+		return (pop_error("Error: gettimeofday failed\n"), -1);
+	return ((tv.tv_sec * 1000) + (tv.tv_usec / 1000));
+}
+
+bool    all_philos_ate_enough(t_table *table)
+{
+	int		i;
+
+	if (table->data->meals == -1)
+		return (false);
+	i = 0;
+	while (i < table->data->nb_of_philos)
+	{
+		if (table->philos[i].meals_eaten < table->data->meals)
+			return (false);
+		i++;
+	}
+	return (true);
+}#ifndef PHILO_BONUS
+#define PHILO_BONUS
+
+# include <stdio.h>
+# include <stdlib.h>
+# include <string.h>
+# include <unistd.h>
+# include <pthread.h>
+# include <stdbool.h>
+# include <sys/time.h>
+# include <semaphore.h>
+# include <fcntl.h>
+# include <sys/types.h>
+# include <signal.h>
+# include <sys/wait.h>
+
+#define RED "\033[0;31m"
+#define RESET  "\033[0m"
+
+# ifndef MAX_PHILOS 
+	# define MAX_PHILOS 227
+# endif /*MAX_PHILOS*/
+
+# define MIN_TIME 42
+# define USAGE "Usage:\n./philo [nb_of_philos] [time_to_die] [time_to_eat] [time_to_sleep] *[meals]\n"
+
+typedef long t_time;
+
+typedef struct  s_data
+{
+	t_time	time_to_die;
+	t_time	time_to_eat;
+	t_time	time_to_sleep;
+	int     nb_of_philos;
+	int		meals;
+}               t_data;
+
+
+typedef struct  s_philo
+{
+	int					id;
+	int					meals_eaten;
+	t_time				last_meal;
+	pthread_t			monitor;
+	bool				is_dead;
+	bool				is_full;
+}               t_philo;
+
+typedef struct s_table
+{
+	t_data			*data;
+	pthread_t		boss;
+	t_philo			philos[MAX_PHILOS];
+	pid_t			*pids;
+	sem_t			*forks;
+	sem_t			*log_sem;
+	sem_t 			*table_sem;
+	sem_t			*dead_sem;
+	sem_t			*died;
+	sem_t			*start_sem;
+	sem_t			*last_meal_sem;
+	sem_t			*full_sem;
+	_Atomic	int		finish_eat;
+	_Atomic bool	dead;
+	long long		start_time;
+}              t_table;
+
+void pop_error(char *msg);
+t_time getcurrtime(void);
+
+int		ft_atoi(char *str);
+bool    all_philos_ate_enough(t_table *table);
+
+#endif /* PHILO_BONUS */

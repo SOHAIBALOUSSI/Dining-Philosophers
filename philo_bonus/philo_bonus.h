@@ -54,10 +54,8 @@ typedef struct s_table
 	pid_t			*pids;
 	sem_t			*forks;
 	sem_t			*log_sem;
-	sem_t 			*table_sem;
 	sem_t			*dead_sem;
 	sem_t			*died;
-	sem_t			*start_sem;
 	sem_t			*last_meal_sem;
 	sem_t			*full_sem;
 	_Atomic	int		finish_eat;
