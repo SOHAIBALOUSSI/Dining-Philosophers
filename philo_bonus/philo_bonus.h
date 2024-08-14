@@ -56,6 +56,7 @@ typedef struct s_table
 	sem_t			*log_sem;
 	sem_t 			*table_sem;
 	sem_t			*dead_sem;
+	sem_t			*died;
 	sem_t			*start_sem;
 	sem_t			*last_meal_sem;
 	sem_t			*full_sem;

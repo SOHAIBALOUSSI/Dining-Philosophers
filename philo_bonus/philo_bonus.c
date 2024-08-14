@@ -13,7 +13,7 @@ __attribute__((destructor)) void	destroyer(void)
 
 	table = get_table();
 	free(table->pids);
-		sem_unlink("/forks");
+	sem_unlink("/forks");
 	sem_unlink("/log");
 	sem_unlink("/dead");
 	sem_unlink("/last_meal");
@@ -90,17 +90,19 @@ void	init_table(t_data *data, int ac, char **av)
 	sem_unlink("/dead");
 	sem_unlink("/last_meal");
 	sem_unlink("/full");
-	table->full_sem = sem_open("/full", O_CREAT, 0644, 0);
+	sem_unlink("/died");
+	table->died = sem_open("/died", O_CREAT, 0644, 1);
+	table->full_sem = sem_open("/full", O_CREAT, 0644, data->nb_of_philos);
 	table->last_meal_sem = sem_open("/last_meal", O_CREAT, 0644, 1);
 	table->forks = sem_open("/forks", O_CREAT, 0644, data->nb_of_philos);
 	table->log_sem = sem_open("/log", O_CREAT, 0644, 1);
-	table->dead_sem = sem_open("/dead", O_CREAT, 0644, 0);
+	table->dead_sem = sem_open("/dead", O_CREAT, 0644, 1);
 	table->pids = malloc(sizeof(pid_t) * data->nb_of_philos);
 	table->finish_eat = 0;
 	if (!table->pids)
-		pop_error("malloc failed!");
+		pop_error("malloc failed!\n");
 	if (!table->forks || !table->log_sem || !table->dead_sem ||
-		!table->last_meal_sem || !table->full_sem)
+		!table->last_meal_sem || !table->full_sem || !table->died)
 		pop_error("Error : sem_open failed\n");
 	init_philos(table->philos, data->nb_of_philos);
 }
@@ -110,10 +112,12 @@ void	print_status(t_philo *philo, char *status)
 	t_table *table;
 
 	table = get_table();
-	sem_wait(table->log_sem);
+	// sem_wait(table->log_sem);
+	sem_wait(table->died);
 	if (!table->dead || (table->data->meals != -1 && philo->meals_eaten >= table->data->meals))
 		printf("%lld  %d %s\n", getcurrtime() - table->start_time, philo->id, status);
-	sem_post(table->log_sem);
+	sem_post(table->died);
+	// sem_post(table->log_sem);
 }
 
 void	*monitor_routine(void *data)
@@ -126,17 +130,15 @@ void	*monitor_routine(void *data)
 	table = get_table();
 	while (!table->dead)
 	{
-		current_time = getcurrtime();
 		sem_wait(table->last_meal_sem);
+		current_time = getcurrtime();
 		if ((current_time - philo->last_meal) > table->data->time_to_die)
 		{
-			table->dead = true;
-			sem_wait(table->log_sem);
-			printf(RED"%lld  %d %s\n"RESET, getcurrtime() - table->start_time, philo->id, "died");
-			sem_close(table->log_sem);
-			sem_post(table->dead_sem);
+			// table->dead = true;
+			sem_wait(table->died);
+			printf(RED"%lld  %d %s\n"RESET, current_time - table->start_time, philo->id, "died");
 			sem_post(table->last_meal_sem);
-			// sleep(10);
+			sem_wait(table->dead_sem);
 			return (NULL);
 		}
 		sem_post(table->last_meal_sem);
@@ -148,6 +150,7 @@ void	*monitor_routine(void *data)
 void philosopher_actions(t_philo *philo, t_table *table)
 {
 	print_status(philo, "is thinking");
+	usleep(100);
 	sem_wait(table->forks);
 	print_status(philo, "has taken a fork");
 	sem_wait(table->forks);
@@ -157,7 +160,7 @@ void philosopher_actions(t_philo *philo, t_table *table)
     philo->last_meal = getcurrtime();
     philo->meals_eaten++;
     if (table->data->meals != -1 && philo->meals_eaten >= table->data->meals)
-		sem_post(table->full_sem);
+		sem_wait(table->full_sem);
     sem_post(table->last_meal_sem);
 	sleep_ms(table->data->time_to_eat);
 	sem_post(table->forks);
@@ -177,22 +180,24 @@ void	*run_philo(void *data)
 		pop_error("pthread_create failed!\n");
 	if (pthread_detach(philo->monitor))
 		pop_error("pthread_join failed\n");
-	while (!table->dead && philo->is_full == false)
+	while (!table->dead)
 		philosopher_actions(philo, table);
 	return (NULL);
 }
+
 void	*check_full(void *data)
 {
 	t_table	*table;
 	int		i;
 
-	table = get_table();
 	i = 0;
-	while (i < table->data->nb_of_philos)
+	table = get_table();
+	while (1)
 	{
-		sem_wait(table->full_sem);
-		i++;
+		if (table->full_sem->__align == 0)
+			break;
 	}
+	printf("cheb3o\n");
 	sem_post(table->dead_sem);
 	table->dead = true;
 	return (NULL);
@@ -221,8 +226,6 @@ void	start_simulation(void)
 		}
 		i++;
 	}
-	sem_post(table->start_sem);
-
 }
 
 void	end_simulation(void)
@@ -232,10 +235,12 @@ void	end_simulation(void)
 
 	i = 0;
 	table = get_table();
-	// sem_post(table->dead_sem);
-	sem_wait(table->start_sem);
-	sem_wait(table->dead_sem);
-	// table->dead = true;
+	while (1)
+	{
+		if (table->dead_sem->__align == 0)
+			break;
+	}
+	table->dead = true;
 	while (i < table->data->nb_of_philos)
 	{
 		if (kill(table->pids[i], SIGKILL))
