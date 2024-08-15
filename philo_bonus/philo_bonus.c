@@ -8,6 +8,7 @@ t_table	*get_table(void)
 }
 __attribute__((destructor)) void	destroyer(void)
 {
+	int i = 0;
 	t_table *table;
 
 	table = get_table();
@@ -83,7 +84,6 @@ void	init_table(t_data *data, int ac, char **av)
 	table = get_table();
 	init_data(data, ac, av);
 	table->data = data;
-	table->start_time = getcurrtime();
 	sem_unlink("/forks");
 	sem_unlink("/log");
 	sem_unlink("/dead");
@@ -91,7 +91,7 @@ void	init_table(t_data *data, int ac, char **av)
 	sem_unlink("/full");
 	sem_unlink("/died");
 	table->died = sem_open("/died", O_CREAT, 0644, 1);
-	table->full_sem = sem_open("/full", O_CREAT, 0644, data->nb_of_philos);
+	table->full_sem = sem_open("/full", O_CREAT, 0644, 1);
 	table->last_meal_sem = sem_open("/last_meal", O_CREAT, 0644, 1);
 	table->forks = sem_open("/forks", O_CREAT, 0644, data->nb_of_philos);
 	table->log_sem = sem_open("/log", O_CREAT, 0644, 1);
@@ -113,7 +113,7 @@ void	print_status(t_philo *philo, char *status)
 	table = get_table();
 	sem_wait(table->log_sem);
 	if (!table->dead || (table->data->meals != -1 && philo->meals_eaten >= table->data->meals))
-		printf("%lld  %d %s\n", getcurrtime() - table->start_time, philo->id, status);
+		printf("%ld  %d %s\n", getcurrtime() - table->start_time, philo->id, status);
 	sem_post(table->log_sem);
 }
 
@@ -121,19 +121,15 @@ void	*monitor_routine(void *data)
 {
 	t_philo	*philo;
 	t_table	*table;
-	t_time	last_meal_time;
 
 	philo = (t_philo *)data;
 	table = get_table();
 	while (1)
 	{
-		sem_wait(table->last_meal_sem);
-		last_meal_time = philo->last_meal;
-		sem_post(table->last_meal_sem);
-		if ((getcurrtime() - last_meal_time) > table->data->time_to_die)
+		if ((getcurrtime() - philo->last_meal) > table->data->time_to_die)
 		{
 			sem_wait(table->log_sem);
-			printf(RED"%lld  %d %s\n"RESET, getcurrtime() - table->start_time, philo->id, "died");
+			printf(RED"%ld  %d %s\n"RESET, getcurrtime() - table->start_time, philo->id, "died");
 			sem_wait(table->dead_sem);
 			return (NULL);
 		}
@@ -156,8 +152,8 @@ void	eat(t_philo *philo, t_table *table)
 	sem_wait(table->last_meal_sem);
 	philo->last_meal = getcurrtime();
 	philo->meals_eaten++;
-	if (table->data->meals != -1 && philo->meals_eaten >= table->data->meals)
-		sem_wait(table->full_sem);	
+	if (philo->id == table->data->nb_of_philos && table->data->meals != -1 && philo->meals_eaten > table->data->meals)
+		sem_wait(table->full_sem);
 	sem_post(table->last_meal_sem);
 	sleep_ms(table->data->time_to_eat);
 }
@@ -195,25 +191,6 @@ void	*run_philo(void *data)
 	return (NULL);
 }
 
-void	*check_full(void *data)
-{
-	int		i;
-	t_table	*table;
-
-	i = 0;
-	table = get_table();
-	while (1)
-	{
-		if (table->full_sem->__align == 0)
-			break;
-		usleep(1000);
-	}
-		// printf("salina f check_full\n");
-	// table->dead = true;
-	sem_wait(table->dead_sem);
-	return (NULL);
-}
-
 void	start_simulation(void)
 {
 	int		i;
@@ -221,10 +198,7 @@ void	start_simulation(void)
 
 	i = 0;
 	table = get_table();
-	if (pthread_create(&table->boss, NULL, check_full, NULL))
-		pop_error("pthread_create failed\n");
-	if (pthread_detach(table->boss))
-		pop_error("pthread_join failed\n");
+	table->start_time = getcurrtime();
 	while (i < table->data->nb_of_philos)
 	{
 		table->pids[i] = fork();
@@ -233,10 +207,10 @@ void	start_simulation(void)
 		if (table->pids[i] == 0)
 		{
 			run_philo(&table->philos[i]);
-			printf("makhasoch ykhrj\n");
 			exit(0);
 		}
 		i++;
+		usleep(100);
 	}
 }
 
@@ -250,6 +224,8 @@ void	end_simulation(void)
 	while (1)
 	{
 		if (table->dead_sem->__align == 0)
+			break;
+		if (table->full_sem->__align == 0)
 			break;
 		usleep(1000);
 	}

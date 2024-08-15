@@ -18,7 +18,7 @@ t_time getcurrtime(void)
 
 	if (gettimeofday(&tv, NULL))
 		return (pop_error("Error: gettimeofday failed\n"), -1);
-	return ((tv.tv_sec * 1000) + (tv.tv_usec / 1000));
+	return (((tv.tv_sec * 1000) + (tv.tv_usec / 1000)));
 }
 
 bool    all_philos_ate_enough(t_table *table)

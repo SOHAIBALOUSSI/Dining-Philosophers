@@ -24,7 +24,7 @@
 # define MIN_TIME 42
 # define USAGE "Usage:\n./philo [nb_of_philos] [time_to_die] [time_to_eat] [time_to_sleep] *[meals]\n"
 
-typedef long t_time;
+typedef _Atomic long t_time;
 
 typedef struct  s_data
 {
@@ -60,7 +60,7 @@ typedef struct s_table
 	sem_t			*full_sem;
 	_Atomic	int		finish_eat;
 	_Atomic bool	dead;
-	long long		start_time;
+	t_time		start_time;
 }              t_table;
 
 void pop_error(char *msg);
