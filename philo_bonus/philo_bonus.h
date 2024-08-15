@@ -14,17 +14,15 @@
 # include <signal.h>
 # include <sys/wait.h>
 
-#define RED "\033[0;31m"
-#define RESET  "\033[0m"
+# define RED "\033[0;31m"
+# define RESET  "\033[0m"
 
-# ifndef MAX_PHILOS 
-	# define MAX_PHILOS 227
-# endif /*MAX_PHILOS*/
+# define MAX_PHILOS 337
 
 # define MIN_TIME 42
 # define USAGE "Usage:\n./philo [nb_of_philos] [time_to_die] [time_to_eat] [time_to_sleep] *[meals]\n"
 
-typedef _Atomic long t_time;
+typedef long t_time;
 
 typedef struct  s_data
 {
@@ -35,38 +33,38 @@ typedef struct  s_data
 	int		meals;
 }               t_data;
 
-
 typedef struct  s_philo
 {
+	pthread_t			monitor;
+	t_time				last_meal;
 	int					id;
 	int					meals_eaten;
-	t_time				last_meal;
-	pthread_t			monitor;
-	bool				is_dead;
-	bool				is_full;
 }               t_philo;
 
 typedef struct s_table
 {
 	t_data			*data;
-	pthread_t		boss;
 	t_philo			philos[MAX_PHILOS];
+	pthread_t		boss;
 	pid_t			*pids;
 	sem_t			*forks;
 	sem_t			*log_sem;
 	sem_t			*dead_sem;
-	sem_t			*died;
 	sem_t			*last_meal_sem;
 	sem_t			*full_sem;
-	_Atomic	int		finish_eat;
-	_Atomic bool	dead;
-	t_time		start_time;
+	t_time			start_time;
 }              t_table;
 
-void pop_error(char *msg);
-t_time getcurrtime(void);
+t_table	*get_table(void);
 
-int		ft_atoi(char *str);
-bool    all_philos_ate_enough(t_table *table);
+void	init_data(t_data *data, int ac, char **av);
+void	*spawn_philo(void *data);
+
+/*		Utils		*/
+void	print_status(t_philo *philo, char *status);
+void	pop_error(char *msg);
+t_time	getcurrtime(void);
+void	sleep_ms(t_time ms);
+void	clean_table(void);
 
 #endif /* PHILO_BONUS */

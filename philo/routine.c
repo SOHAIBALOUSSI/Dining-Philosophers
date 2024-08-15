@@ -82,10 +82,10 @@ void *philo_routine(void *pdata)
 	}
 	return (NULL);
 }
-void *monitor_routine(void *data)
+void	*monitor_routine(void *data)
 {
-	t_table *table;
-	int i;
+	int		i;
+	t_table	*table;
 
 	table = get_table();
 	while (!table->dead && !all_philos_ate_enough(table))
@@ -93,7 +93,7 @@ void *monitor_routine(void *data)
 		i = 0;
 		while (i < table->data->nb_of_philos)
 		{
-			if (table->data->meals == -1 || table->data->meals < table->philos[i].meals_eaten)
+			if (table->data->meals < table->philos[i].meals_eaten)
 			{
 				if ((getcurrtime() - table->philos[i].last_meal) > table->data->time_to_die)
 				{
@@ -108,7 +108,6 @@ void *monitor_routine(void *data)
 				break;
 			i++;
 		}
-		usleep(1000);
 	}
 	return (NULL);
 }

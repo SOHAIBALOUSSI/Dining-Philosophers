@@ -1,6 +1,26 @@
 #include "philo_bonus.h"
 
-int	ft_atoi(char *str)
+void	clean_table(void)
+{
+	int		i;
+	t_table	*table;
+
+	i = 0;
+	table = get_table();
+	free(table->pids);
+	sem_close(table->forks);
+	sem_close(table->log_sem);
+	sem_close(table->dead_sem);
+	sem_close(table->last_meal_sem);
+	sem_close(table->full_sem);
+	sem_unlink("/forks");
+	sem_unlink("/log");
+	sem_unlink("/dead");
+	sem_unlink("/last_meal");
+	sem_unlink("/full");
+}
+
+static int	ft_atoi(char *str)
 {
 	int		i;
 	long	result;
@@ -24,4 +44,24 @@ int	ft_atoi(char *str)
 		i++;
 	}
 	return (result);
+}
+
+void	init_data(t_data *data, int ac, char **av)
+{
+	data->nb_of_philos = ft_atoi(av[1]);
+	data->time_to_die = ft_atoi(av[2]);
+	data->time_to_eat = ft_atoi(av[3]);
+	data->time_to_sleep = ft_atoi(av[4]);
+	data->meals = -1;
+	if (ac == 6)
+		data->meals = ft_atoi(av[5]);
+	if (!data->meals || !data->nb_of_philos || !data->time_to_die \
+		|| !data->time_to_eat || !data->time_to_sleep)
+		pop_error("Error: this arg(s) cannot be set to 0\n");
+	if (data->nb_of_philos > MAX_PHILOS)
+		pop_error("Error: too many philosophers\n");
+	if (data->time_to_die < MIN_TIME \
+		|| data->time_to_eat < MIN_TIME \
+		|| data->time_to_sleep < MIN_TIME)
+		pop_error("Error: time is too short\n");
 }

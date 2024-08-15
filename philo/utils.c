@@ -11,7 +11,7 @@ void error(char *msg)
 	// exit(EXIT_FAILURE);
 }
 
-long long getcurrtime(void)
+t_time getcurrtime(void)
 {
 	struct timeval tv;
 
@@ -19,13 +19,13 @@ long long getcurrtime(void)
 	return ((tv.tv_sec * 1000) + (tv.tv_usec / 1000));
 }
 
-void sleep_ms(long long ms)
+void sleep_ms(t_time ms)
 {
-	long long start;
+	t_time	start;
 
 	start = getcurrtime();
 	while (getcurrtime() - start < ms)
-		usleep(50);
+		usleep(100);
 }
 bool    all_philos_ate_enough(t_table *table)
 {

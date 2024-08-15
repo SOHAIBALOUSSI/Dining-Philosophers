@@ -15,18 +15,20 @@
 #define RESET  "\033[0m"
 
 # ifndef MAX_PHILOS
-# define MAX_PHILOS 300
+# define MAX_PHILOS 337
 # endif
 
 #define MIN_TIME 42
 # define USAGE "Usage:\n./philo [nb_of_philos] [time_to_die] [time_to_eat] [time_to_sleep] *[meals]\n"
 
+typedef long	t_time;
+
 typedef struct  s_data
 {
+	t_time	time_to_die;
+	t_time	time_to_eat;
+	t_time	time_to_sleep;
 	int		nb_of_philos;
-	int		time_to_die;
-	int		time_to_eat;
-	int		time_to_sleep;
 	int		meals;
 }               t_data;
 
@@ -48,8 +50,8 @@ typedef struct s_table
 {
 	t_data			*data;
 	pthread_t		monitor;
-	t_philo			philos[300];
-	pthread_mutex_t	forks[300];
+	t_philo			philos[MAX_PHILOS];
+	pthread_mutex_t	forks[MAX_PHILOS];
 	pthread_mutex_t	log_mutex;
 	pthread_mutex_t table_mutex;
 	pthread_mutex_t dead_mutex;

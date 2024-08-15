@@ -66,7 +66,6 @@ static int	init_forks(pthread_mutex_t *forks, t_data *data)
 
 static int    init_data(t_data *data ,int ac, char **av)
 {
-	// memset(data, 0, sizeof(t_data));
 	data->nb_of_philos = ft_atoi(av[1]);
 	data->time_to_die = ft_atoi(av[2]);
 	data->time_to_eat = ft_atoi(av[3]);
@@ -79,14 +78,11 @@ static int    init_data(t_data *data ,int ac, char **av)
 		data->meals = ft_atoi(av[5]);
 	if (ac == 6 && data->meals == -1)
 		return (-1);
-	if (data->meals == 0)
-		return (error("Error: number of meals cannot be set to 0\n"), -1);
-	if (!data->nb_of_philos)
-		return (error("Error: number of philosophers cannot be set 0\n"), -1);
+	if (!data->meals || !data->nb_of_philos || !data->time_to_die \
+		|| !data->time_to_eat || !data->time_to_sleep)
+		return (error("Error: this arg(s) cannot be set to 0\n"), -1);
 	if (data->nb_of_philos > MAX_PHILOS)
 		return (error("Error: too many philosophers\n"), -1);
-	if (!data->time_to_die || !data->time_to_eat || !data->time_to_sleep)
-		return (error("Error: time arguments cannot be set to 0 ms\n"), -1);
 	if (data->time_to_die < MIN_TIME || data->time_to_eat < MIN_TIME
 		|| data->time_to_sleep < MIN_TIME)
 		return (error("Error: time is too short\n"), -1);
@@ -103,7 +99,6 @@ int init_table(t_data *data, int ac, char **av)
 		return (-1);
 	table->data = data;
 	table->dead = false;
-	table->start_time = getcurrtime();
 	if (pthread_mutex_init(&table->log_mutex, NULL))
 		return (error("Error: mutex init failed\n"), -1);
 	if (pthread_mutex_init(&table->dead_mutex, NULL))
