@@ -1,7 +1,6 @@
 NAME = philo_bonus
 CC = cc
-# CFLAGS = -Wall -Wextra -Werror 
-#CFLAGS = -fsanitize=thread #-Wall -Wextra -Werror #
+CFLAGS = -fsanitize=thread -Wall -Wextra -Werror 
 
 SRCS = philo_bonus.c init_bonus.c  utils_bonus.c routine_bonus.c
 OBJS = $(SRCS:.c=.o)

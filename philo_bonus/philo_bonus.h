@@ -1,5 +1,17 @@
-#ifndef PHILO_BONUS
-#define PHILO_BONUS
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   philo_bonus.h                                      :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: sait-alo <sait-alo@student.1337.ma>        +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/08/16 18:19:42 by sait-alo          #+#    #+#             */
+/*   Updated: 2024/08/16 19:06:27 by sait-alo         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#ifndef PHILO_BONUS_H
+# define PHILO_BONUS_H
 
 # include <stdio.h>
 # include <stdlib.h>
@@ -20,26 +32,26 @@
 # define MAX_PHILOS 337
 
 # define MIN_TIME 42
-# define USAGE "Usage:\n./philo [nb_of_philos] [time_to_die] [time_to_eat] [time_to_sleep] *[meals]\n"
+# define USAGE "[nb_of_philos][ttd][time_to_eat][time_to_sleep]*[meals]\n"
 
-typedef long t_time;
+typedef long	t_time;
 
-typedef struct  s_data
+typedef struct s_data
 {
-	t_time	time_to_die;
+	t_time	ttd;
 	t_time	time_to_eat;
 	t_time	time_to_sleep;
-	int     nb_of_philos;
+	int		nb_of_philos;
 	int		meals;
-}               t_data;
+}				t_data;
 
-typedef struct  s_philo
+typedef struct s_philo
 {
-	pthread_t			monitor;
-	t_time				last_meal;
-	int					id;
-	int					meals_eaten;
-}               t_philo;
+	pthread_t	monitor;
+	t_time		last_meal;
+	int			id;
+	int			meals_eaten;
+}				t_philo;
 
 typedef struct s_table
 {
@@ -53,7 +65,7 @@ typedef struct s_table
 	sem_t			*last_meal_sem;
 	sem_t			*full_sem;
 	t_time			start_time;
-}              t_table;
+}				t_table;
 
 t_table	*get_table(void);
 
@@ -66,5 +78,6 @@ void	pop_error(char *msg);
 t_time	getcurrtime(void);
 void	sleep_ms(t_time ms);
 void	clean_table(void);
+t_time	get_lastmeal(t_philo *philo);
 
 #endif /* PHILO_BONUS */

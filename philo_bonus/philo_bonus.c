@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   philo_bonus.c                                      :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: sait-alo <sait-alo@student.1337.ma>        +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/08/16 18:19:42 by sait-alo          #+#    #+#             */
+/*   Updated: 2024/08/16 19:02:15 by sait-alo         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "philo_bonus.h"
 
 void	init_philos(t_philo *philo, long long pnumber)
@@ -31,8 +43,8 @@ void	init_table(t_data *data, int ac, char **av)
 	table->dead_sem = sem_open("/dead", O_CREAT, 0644, 1);
 	table->last_meal_sem = sem_open("/last_meal", O_CREAT, 0644, 1);
 	table->full_sem = sem_open("/full", O_CREAT, 0644, 1);
-	if (!table->forks || !table->log_sem || !table->dead_sem ||
-		!table->last_meal_sem || !table->full_sem)
+	if (!table->forks || !table->log_sem || !table->dead_sem
+		|| !table->last_meal_sem || !table->full_sem)
 		pop_error("Error : sem_open failed\n");
 	table->pids = malloc(sizeof(pid_t) * data->nb_of_philos);
 	if (!table->pids)
@@ -73,9 +85,9 @@ void	end_simulation(void)
 	while (true)
 	{
 		if (table->dead_sem->__align == 0)
-			break;
+			break ;
 		if (table->full_sem->__align == 0)
-			break;
+			break ;
 		usleep(1000);
 	}
 	while (i < table->data->nb_of_philos)
@@ -92,7 +104,7 @@ int	main(int ac, char **av)
 	t_data	data;
 
 	if (ac != 5 && ac != 6)
-		pop_error(USAGE);
+		pop_error("Usage:\n./philo"USAGE);
 	init_table(&data, ac, av);
 	start_simulation();
 	end_simulation();

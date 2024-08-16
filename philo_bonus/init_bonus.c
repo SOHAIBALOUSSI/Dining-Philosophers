@@ -1,4 +1,28 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   init_bonus.c                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: sait-alo <sait-alo@student.1337.ma>        +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/08/16 18:19:42 by sait-alo          #+#    #+#             */
+/*   Updated: 2024/08/16 19:06:11 by sait-alo         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "philo_bonus.h"
+
+t_time	get_lastmeal(t_philo *philo)
+{
+	t_table	*table;
+	t_time	lastmeal;
+
+	table = get_table();
+	sem_wait(table->last_meal_sem);
+	lastmeal = philo->last_meal;
+	sem_post(table->last_meal_sem);
+	return (lastmeal);
+}
 
 void	clean_table(void)
 {
@@ -49,18 +73,18 @@ static int	ft_atoi(char *str)
 void	init_data(t_data *data, int ac, char **av)
 {
 	data->nb_of_philos = ft_atoi(av[1]);
-	data->time_to_die = ft_atoi(av[2]);
+	data->ttd = ft_atoi(av[2]);
 	data->time_to_eat = ft_atoi(av[3]);
 	data->time_to_sleep = ft_atoi(av[4]);
 	data->meals = -1;
 	if (ac == 6)
 		data->meals = ft_atoi(av[5]);
-	if (!data->meals || !data->nb_of_philos || !data->time_to_die \
+	if (!data->meals || !data->nb_of_philos || !data->ttd \
 		|| !data->time_to_eat || !data->time_to_sleep)
 		pop_error("Error: this arg(s) cannot be set to 0\n");
 	if (data->nb_of_philos > MAX_PHILOS)
 		pop_error("Error: too many philosophers\n");
-	if (data->time_to_die < MIN_TIME \
+	if (data->ttd < MIN_TIME \
 		|| data->time_to_eat < MIN_TIME \
 		|| data->time_to_sleep < MIN_TIME)
 		pop_error("Error: time is too short\n");
