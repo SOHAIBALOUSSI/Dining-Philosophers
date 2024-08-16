@@ -6,7 +6,7 @@
 /*   By: sait-alo <sait-alo@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/16 18:19:42 by sait-alo          #+#    #+#             */
-/*   Updated: 2024/08/16 18:45:33 by sait-alo         ###   ########.fr       */
+/*   Updated: 2024/08/16 20:11:56 by sait-alo         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,7 +71,7 @@ void	print_status(t_philo *philo, char *status)
 
 	table = get_table();
 	pthread_mutex_lock(&table->log_mutex);
-	if (!table->dead)
+	if (!is_someone_dead(table))
 	{
 		printf("%ld  %d %s\n", getcurrtime() - table->start_time, \
 			philo->id, status);

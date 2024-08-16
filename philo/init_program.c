@@ -6,7 +6,7 @@
 /*   By: sait-alo <sait-alo@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/16 18:19:42 by sait-alo          #+#    #+#             */
-/*   Updated: 2024/08/16 18:51:00 by sait-alo         ###   ########.fr       */
+/*   Updated: 2024/08/16 20:05:20 by sait-alo         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,10 +79,10 @@ static int	init_forks(pthread_mutex_t *forks, t_data *data)
 static int	init_data(t_data *data, int ac, char **av)
 {
 	data->nb_of_philos = ft_atoi(av[1]);
-	data->ttd = ft_atoi(av[2]);
+	data->time_to_die = ft_atoi(av[2]);
 	data->time_to_eat = ft_atoi(av[3]);
 	data->time_to_sleep = ft_atoi(av[4]);
-	if (data->nb_of_philos == -1 || data->ttd == -1
+	if (data->nb_of_philos == -1 || data->time_to_die == -1
 		|| data->time_to_eat == -1 || data->time_to_sleep == -1)
 		return (-1);
 	data->meals = -1;
@@ -90,12 +90,12 @@ static int	init_data(t_data *data, int ac, char **av)
 		data->meals = ft_atoi(av[5]);
 	if (ac == 6 && data->meals == -1)
 		return (-1);
-	if (!data->meals || !data->nb_of_philos || !data->ttd \
+	if (!data->meals || !data->nb_of_philos || !data->time_to_die \
 		|| !data->time_to_eat || !data->time_to_sleep)
 		return (error("Error: this arg(s) cannot be set to 0\n"), -1);
 	if (data->nb_of_philos > MAX_PHILOS)
 		return (error("Error: too many philosophers\n"), -1);
-	if (data->ttd < MIN_TIME || data->time_to_eat < MIN_TIME
+	if (data->time_to_die < MIN_TIME || data->time_to_eat < MIN_TIME
 		|| data->time_to_sleep < MIN_TIME)
 		return (error("Error: time is too short\n"), -1);
 	return (0);

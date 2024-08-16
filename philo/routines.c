@@ -6,7 +6,7 @@
 /*   By: sait-alo <sait-alo@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/16 18:19:42 by sait-alo          #+#    #+#             */
-/*   Updated: 2024/08/16 18:56:21 by sait-alo         ###   ########.fr       */
+/*   Updated: 2024/08/16 20:06:35 by sait-alo         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,9 +52,9 @@ static int	eat_state(t_philo *philo)
 	if (table->data->nb_of_philos == 1)
 	{
 		set_dead_state(true);
-		sleep_ms(table->data->ttd);
+		sleep_ms(table->data->time_to_die);
 		pthread_mutex_lock(&table->log_mutex);
-		printf(RED"%ld  %d died\n"RESET, table->data->ttd, 1);
+		printf(RED"%ld  %d died\n"RESET, table->data->time_to_die, 1);
 		pthread_mutex_unlock(&table->log_mutex);
 		return (-1);
 	}
@@ -97,8 +97,8 @@ void	*monitor_routine(void *data)
 	int		i;
 	t_table	*table;
 
-	table = get_table();
 	(void)data;
+	table = get_table();
 	while (!is_someone_dead(table))
 	{
 		i = 0;
@@ -106,7 +106,7 @@ void	*monitor_routine(void *data)
 		{
 			if (all_philos_full(table))
 				return (NULL);
-			if ((getcurrtime() - lastm(&table->philos[i])) > table->data->ttd)
+			if ((getcurrtime() - lastm(&table->philos[i])) > table->data->time_to_die)
 			{
 				set_dead_state(true);
 				pthread_mutex_lock(&table->log_mutex);

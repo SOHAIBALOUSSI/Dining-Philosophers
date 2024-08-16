@@ -6,7 +6,7 @@
 /*   By: sait-alo <sait-alo@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/16 18:19:42 by sait-alo          #+#    #+#             */
-/*   Updated: 2024/08/16 18:52:05 by sait-alo         ###   ########.fr       */
+/*   Updated: 2024/08/16 20:05:10 by sait-alo         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@ typedef long	t_time;
 
 typedef struct s_data
 {
-	t_time	ttd;
+	t_time	time_to_die;
 	t_time	time_to_eat;
 	t_time	time_to_sleep;
 	int		nb_of_philos;
