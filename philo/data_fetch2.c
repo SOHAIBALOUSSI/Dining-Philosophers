@@ -6,7 +6,7 @@
 /*   By: sait-alo <sait-alo@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/16 18:19:42 by sait-alo          #+#    #+#             */
-/*   Updated: 2024/08/16 18:53:00 by sait-alo         ###   ########.fr       */
+/*   Updated: 2024/08/17 16:08:41 by sait-alo         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,9 +18,9 @@ bool	is_full(t_philo *philo)
 	bool	is_full;
 
 	table = get_table();
-	pthread_mutex_lock(&table->table_mutex);
+	pthread_mutex_lock(&table->full_mutex);
 	is_full = philo->is_full;
-	pthread_mutex_unlock(&table->table_mutex);
+	pthread_mutex_unlock(&table->full_mutex);
 	return (is_full);
 }
 
@@ -34,7 +34,7 @@ int	get_meals(t_philo *philo)
 	return (meals);
 }
 
-t_time	lastm(t_philo *philo)
+t_time	get_lastmeal(t_philo *philo)
 {
 	t_time	last_meals;
 
@@ -49,7 +49,19 @@ void	set_full(t_philo *philo)
 	t_table	*table;
 
 	table = get_table();
-	pthread_mutex_lock(&table->table_mutex);
+	pthread_mutex_lock(&table->full_mutex);
 	philo->is_full = true;
-	pthread_mutex_unlock(&table->table_mutex);
+	pthread_mutex_unlock(&table->full_mutex);
+}
+
+bool	all_full(void)
+{
+	t_table	*table;
+	bool	is_full;
+
+	table = get_table();
+	pthread_mutex_lock(&table->full_mutex);
+	is_full = table->full;
+	pthread_mutex_unlock(&table->full_mutex);
+	return (is_full);
 }

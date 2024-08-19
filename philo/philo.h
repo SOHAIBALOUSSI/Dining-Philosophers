@@ -6,7 +6,7 @@
 /*   By: sait-alo <sait-alo@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/16 18:19:42 by sait-alo          #+#    #+#             */
-/*   Updated: 2024/08/16 20:05:10 by sait-alo         ###   ########.fr       */
+/*   Updated: 2024/08/17 16:09:07 by sait-alo         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,6 +62,8 @@ typedef struct s_table
 	pthread_mutex_t	dead_mtx;
 	pthread_mutex_t	table_mutex;
 	pthread_mutex_t	dead_mutex;
+	pthread_mutex_t	full_mutex;
+	bool			full;
 	bool			dead;
 	t_time			start_time;
 }				t_table;
@@ -84,10 +86,12 @@ void		print_status(t_philo *philo, char *status);
 
 /*		Api			*/
 int			get_meals(t_philo *philo);
-t_time		lastm(t_philo *philo);
+t_time		get_lastmeal(t_philo *philo);
 bool		is_someone_dead(t_table *table);
-void		set_dead_state(bool state);
 bool		is_full(t_philo *philo);
+bool		all_full(void);
 void		set_full(t_philo *philo);
+void		set_dead_state(bool stat);
+void		set_full_state(bool stat);
 
 #endif

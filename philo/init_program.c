@@ -6,7 +6,7 @@
 /*   By: sait-alo <sait-alo@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/16 18:19:42 by sait-alo          #+#    #+#             */
-/*   Updated: 2024/08/16 20:05:20 by sait-alo         ###   ########.fr       */
+/*   Updated: 2024/08/17 15:55:50 by sait-alo         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -110,15 +110,14 @@ int	init_table(t_data *data, int ac, char **av)
 		return (-1);
 	table->data = data;
 	table->dead = false;
-	if (pthread_mutex_init(&table->dead_mtx, NULL))
+	table->full = false;
+	if (pthread_mutex_init(&table->table_mutex, NULL)
+		|| pthread_mutex_init(&table->log_mutex, NULL)
+		|| pthread_mutex_init(&table->dead_mtx, NULL)
+		|| pthread_mutex_init(&table->dead_mutex, NULL)
+		|| pthread_mutex_init(&table->log_mutex, NULL)
+		|| init_forks(table->forks, data) == -1
+		|| init_philos(table->philos, data) == -1)
 		return (error("Error: mutex init failed\n"), -1);
-	if (pthread_mutex_init(&table->log_mutex, NULL))
-		return (error("Error: mutex init failed\n"), -1);
-	if (pthread_mutex_init(&table->dead_mutex, NULL))
-		return (error("Error: mutex init failed\n"), -1);
-	if (init_forks(table->forks, data) == -1)
-		return (-1);
-	if (init_philos(table->philos, data) == -1)
-		return (-1);
 	return (0);
 }

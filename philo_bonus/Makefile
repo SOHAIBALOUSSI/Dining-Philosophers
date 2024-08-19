@@ -1,6 +1,6 @@
 NAME = philo_bonus
 CC = cc
-CFLAGS = -fsanitize=thread -Wall -Wextra -Werror 
+CFLAGS = -Wall -Wextra -Werror
 
 SRCS = philo_bonus.c init_bonus.c  utils_bonus.c routine_bonus.c
 OBJS = $(SRCS:.c=.o)
@@ -11,13 +11,13 @@ OBJS = $(SRCS:.c=.o)
 all : $(NAME)
 
 $(NAME) : $(OBJS)
-	$(CC) $(CFLAGS) $^ -o $@ -pthread
-
+	$(CC) $(CFLAGS) -o $@ $^ -pthread
+ 
 clean :
-	rm -f $(OBJS)
+	rm -fv $(OBJS)
 
 fclean : clean
-	rm -f $(NAME)
+	rm -fv $(NAME)
 
 re : fclean all
 

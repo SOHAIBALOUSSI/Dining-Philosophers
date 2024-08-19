@@ -6,7 +6,7 @@
 /*   By: sait-alo <sait-alo@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/16 18:19:42 by sait-alo          #+#    #+#             */
-/*   Updated: 2024/08/16 19:02:15 by sait-alo         ###   ########.fr       */
+/*   Updated: 2024/08/17 16:43:55 by sait-alo         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,7 +96,6 @@ void	end_simulation(void)
 			pop_error("kill failed\n");
 		i++;
 	}
-	sem_post(table->dead_sem);
 }
 
 int	main(int ac, char **av)

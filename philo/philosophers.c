@@ -6,7 +6,7 @@
 /*   By: sait-alo <sait-alo@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/16 00:00:00 by sait-alo          #+#    #+#             */
-/*   Updated: 2024/08/16 18:44:03 by sait-alo         ###   ########.fr       */
+/*   Updated: 2024/08/17 15:57:21 by sait-alo         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,8 +27,6 @@ static int	start_simulation(void)
 	i = 0;
 	table = get_table();
 	table->start_time = getcurrtime();
-	if (pthread_create(&table->monitor, NULL, monitor_routine, NULL))
-		return (error("Error: pthread_create failed\n"), -1);
 	while (i < table->data->nb_of_philos)
 	{
 		if (pthread_create(&table->philos[i].thread, NULL, \
@@ -36,6 +34,8 @@ static int	start_simulation(void)
 			return (error("Error: pthread_create failed %d\n"), -1);
 		i++;
 	}
+	if (!monitor_routine(NULL))
+		return (EXIT_SUCCESS);
 	return (0);
 }
 
@@ -52,8 +52,6 @@ static int	join_threads(void)
 			return (error("Error: pthread_join failed\n"), -1);
 		i++;
 	}
-	if (pthread_join(table->monitor, NULL))
-		return (error("Error: pthread_join failed\n"), -1);
 	return (0);
 }
 
@@ -66,6 +64,8 @@ static int	clean_table(void)
 	table = get_table();
 	while (i < table->data->nb_of_philos)
 	{
+		pthread_mutex_destroy(&table->philos[i].last_meal_mutex);
+		pthread_mutex_destroy(&table->philos[i].meals_mutex);
 		if (pthread_mutex_destroy(&table->forks[i]))
 			return (error("Error: pthread_mutex_destroy failed\n"), -1);
 		i++;
@@ -73,7 +73,8 @@ static int	clean_table(void)
 	if (pthread_mutex_destroy(&table->dead_mtx)
 		|| pthread_mutex_destroy(&table->dead_mutex)
 		|| pthread_mutex_destroy(&table->log_mutex)
-		|| pthread_mutex_destroy(&table->table_mutex))
+		|| pthread_mutex_destroy(&table->table_mutex)
+		|| pthread_mutex_destroy(&table->full_mutex))
 		return (error("Error: pthread_mutex_destroy failed\n"), -1);
 	return (0);
 }

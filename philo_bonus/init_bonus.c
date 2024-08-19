@@ -6,7 +6,7 @@
 /*   By: sait-alo <sait-alo@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/16 18:19:42 by sait-alo          #+#    #+#             */
-/*   Updated: 2024/08/16 19:06:11 by sait-alo         ###   ########.fr       */
+/*   Updated: 2024/08/17 17:00:23 by sait-alo         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,10 +26,8 @@ t_time	get_lastmeal(t_philo *philo)
 
 void	clean_table(void)
 {
-	int		i;
 	t_table	*table;
 
-	i = 0;
 	table = get_table();
 	free(table->pids);
 	sem_close(table->forks);

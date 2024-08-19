@@ -1,23 +1,24 @@
 NAME = philo
 CC = cc
-CFLAGS = -Wall -Wextra -Werror -fsanitize=thread
+CFLAGS = -Wall -Wextra -Werror 
 
 SRCS = data_fetch.c data_fetch2.c init_program.c philosophers.c program_utils.c routines.c
 
 OBJS = $(SRCS:.c=.o)
+
 .c.o :
 	@$(CC) $(CFLAGS) -c $< -o $@
 
 all : $(NAME)
 
 $(NAME) : $(OBJS)
-	$(CC) $(CFLAGS) $^ -o $@ -pthread
+	$(CC) $(CFLAGS) -o $@ $^ -pthread
 
 clean :
-	rm -f $(OBJS)
+	rm -fv $(OBJS)
 
 fclean : clean
-	rm -f $(NAME)
+	rm -fv $(NAME)
 
 re : fclean all
 
